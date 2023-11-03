@@ -1,0 +1,19 @@
+#pt-container {
+    display: flex;
+    align-self: center;
+    justify-self: center;
+    width: 75%;
+    height: 800px;
+    padding: 20px;
+    margin: 0 auto;
+    background-color: aquamarine;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+#play-area {
+    background-color: cadetblue;
+    border: 1px solid blue;
+}

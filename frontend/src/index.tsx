@@ -1,8 +1,13 @@
 /* @refresh reload */
 import { render } from 'solid-js/web';
+import { Router, Routes, Route } from '@solidjs/router';
+import { lazy } from 'solid-js';
+import 'solid-devtools';
 
-import './index.css';
 import App from './App';
+const PlayingTable = lazy(
+    () => import('./components/PlayingTable/PlayingTable'),
+);
 
 const root = document.getElementById('root');
 
@@ -12,4 +17,14 @@ if (import.meta.env.DEV && !(root instanceof HTMLElement)) {
     );
 }
 
-render(() => <App />, root!);
+render(
+    () => (
+        <Router>
+            <Routes>
+                <Route path="/" component={App} />
+                <Route path="/game/:id" component={PlayingTable} />
+            </Routes>
+        </Router>
+    ),
+    root!,
+);
