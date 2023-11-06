@@ -1,0 +1,30 @@
+{
+  "dependencies": {
+    "@solidjs/router": "^0.8.3",
+    "express": "^4.18.2",
+    "solid-js": "^1.8.5",
+    "ws": "^8.14.2"
+  },
+  "devDependencies": {
+    "solid-devtools": "^0.28.1",
+    "vite": "^4.5.0",
+    "vite-plugin-solid": "^2.7.2"
+  },
+  "name": "online-deck-of-cards",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PDaI2023-Group-1/online-deck-of-cards.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/PDaI2023-Group-1/online-deck-of-cards/issues"
+  },
+  "homepage": "https://github.com/PDaI2023-Group-1/online-deck-of-cards#readme",
+  "description": ""
+}
