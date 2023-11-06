@@ -1,0 +1,6 @@
+.card-container {
+    width: 2.5rem;
+    height: 3.5rem;
+    position: fixed;
+    background-color: rgb(221, 61, 66);
+}

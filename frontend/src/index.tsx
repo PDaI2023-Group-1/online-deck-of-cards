@@ -5,9 +5,8 @@ import { lazy } from 'solid-js';
 import 'solid-devtools';
 
 import App from './App';
-const PlayingTable = lazy(
-    () => import('./components/PlayingTable/PlayingTable'),
-);
+
+const GameArea = lazy(() => import('./components/GameArea/GameArea'));
 
 const root = document.getElementById('root');
 
@@ -22,7 +21,7 @@ render(
         <Router>
             <Routes>
                 <Route path="/" component={App} />
-                <Route path="/game/:id" component={PlayingTable} />
+                <Route path="/game/:id" component={GameArea} />
             </Routes>
         </Router>
     ),
