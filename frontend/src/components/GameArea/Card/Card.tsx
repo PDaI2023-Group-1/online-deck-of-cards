@@ -16,6 +16,7 @@ export enum ECardSuit {
 }
 
 export interface ICardProps {
+    id: number;
     pos: { x: number; y: number };
     isFaceUp: boolean;
     order: number;
@@ -31,7 +32,8 @@ export interface ICardProps {
 const Card: Component<ICardProps> = (props) => {
     return (
         <div
-            class={'card-container'}
+            class={`card-container`}
+            id={`${props.id}`}
             style={{ left: `${props.pos.x}px`, top: `${props.pos.y}px` }}
         >
             Card
