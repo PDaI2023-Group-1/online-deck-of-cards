@@ -7,15 +7,15 @@ type Room = {
 
 const rooms: { [key: string]: Room } = {};
 
-const characters: string =
+const characters =
   "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
-const createCode = (): string => {
-  const bytes: Buffer = crypto.randomBytes(6);
-  let roomCode: string = "";
+const createCode = (len = 6): string => {
+  const bytes = crypto.randomBytes(len);
+  let roomCode = "";
 
   for (let i = 0; i < bytes.length; i++) {
-    const index: number = bytes[i] % characters.length;
+    const index = bytes[i] % characters.length;
     roomCode += characters.charAt(index);
   }
 
@@ -36,7 +36,7 @@ const roomCodeExists = (roomCode: string): boolean => {
   return rooms.hasOwnProperty(roomCode);
 };
 
-const countRooms = (): number => {
+const roomCount = (): number => {
   return Object.keys(rooms).length;
 };
 
@@ -47,4 +47,4 @@ const getRoomInfo = (roomCode: string): Room | null => {
   return null;
 };
 
-export { createCode, roomCodeExists, countRooms, getRoomInfo };
+export { createCode, roomCodeExists, roomCount, getRoomInfo };

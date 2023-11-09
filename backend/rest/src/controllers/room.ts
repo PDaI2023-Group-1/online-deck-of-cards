@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import {
   createCode,
-  countRooms,
+  roomCount,
   getRoomInfo,
 } from "../handlers/roomCodeHandler";
 
@@ -10,11 +10,11 @@ const createRoomCode = (req: Request, res: Response) => {
 };
 
 const roomCapacity = (req: Request, res: Response) => {
-  res.json({ roomCount: countRooms() });
+  res.json({ roomCount: roomCount() });
 };
 
 const roomInfo = (req: Request, res: Response) => {
-  const roomCode: string = req.params.roomCode;
+  const roomCode = req.params.roomCode;
   const roomInfo = getRoomInfo(roomCode);
 
   res.json({ roomInfo: roomInfo });
