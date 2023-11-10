@@ -3,6 +3,10 @@ import crypto from "crypto";
 type Room = {
   roomCode: string;
   timestamp: number;
+  maxPlayers: number;
+  pinCode: string | null;
+  players: number[];
+  ownerId: number;
 };
 
 const rooms: { [key: string]: Room } = {};
@@ -10,26 +14,38 @@ const rooms: { [key: string]: Room } = {};
 const characters =
   "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
-const createCode = (len = 6): string => {
-  const bytes = crypto.randomBytes(len);
-  let roomCode = "";
+const createCode = (): string => {
+  const bytes: Buffer = crypto.randomBytes(6);
+  let roomCode: string = "";
 
   for (let i = 0; i < bytes.length; i++) {
     const index = bytes[i] % characters.length;
     roomCode += characters.charAt(index);
   }
 
+  return roomCode;
+};
+
+const createRoomCode = (
+  maxPlayers: number,
+  pinCode: string | null,
+  userId: number
+) => {
+  const roomCode = createCode();
   if (roomCodeExists(roomCode)) {
-    createCode();
+    createRoomCode(maxPlayers, pinCode, userId);
   } else {
     const newRoom: Room = {
       roomCode: roomCode,
       timestamp: Date.now(),
+      maxPlayers: maxPlayers,
+      pinCode: pinCode,
+      players: [userId],
+      ownerId: userId,
     };
     rooms[newRoom.roomCode] = newRoom;
+    return roomCode;
   }
-
-  return roomCode;
 };
 
 const roomCodeExists = (roomCode: string): boolean => {
@@ -47,4 +63,4 @@ const getRoomInfo = (roomCode: string): Room | null => {
   return null;
 };
 
-export { createCode, roomCodeExists, roomCount, getRoomInfo };
+export { createCode, createRoomCode, roomCodeExists, roomCount, getRoomInfo };
