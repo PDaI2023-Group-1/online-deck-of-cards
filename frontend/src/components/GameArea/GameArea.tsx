@@ -4,7 +4,7 @@ import './GameAreaStyles.css';
 
 const defaultCardProps: ICardProps = {
     id: 0,
-    pos: { x: 140, y: 150 },
+    pos: { x: 250, y: 150 },
     isFaceUp: false,
     order: 0,
     cardState: ECardState.inDeck,
@@ -15,7 +15,6 @@ const defaultCardProps: ICardProps = {
 
 const GameArea: Component = () => {
     const [cardsArr, setCardsArr] = createSignal<Array<ICardProps>>([]);
-    const [pointerPos, setPointerPos] = createSignal({ x: 0, y: 0 });
     const [activeCardId, setActiveCardId] = createSignal<number>();
 
     const addDeck = () => {
@@ -27,7 +26,7 @@ const GameArea: Component = () => {
                         ...defaultCardProps,
                         value: value + 1,
                         suit: suit,
-                        id: +`${suit}${value}`, // I realize this only works for one deck, adding support for more later
+                        id: value + suit * 13,
                     },
                 ]);
             }
@@ -43,23 +42,22 @@ const GameArea: Component = () => {
         }
     };
 
-    const handleMouseMove = (event: MouseEvent) => {
-        setPointerPos({ x: event.x, y: event.y });
-
-        if (!activeCardId()) return;
-
-        const activeElement = cardsArr().find((el) => el.id === activeCardId());
-        console.log(activeElement);
-        console.log(activeCardId());
+    const setActiveCard = (target: HTMLDivElement) => {
+        setActiveCardId(+target.id);
     };
 
-    const setActiveCard = (event: MouseEvent) => {
-        if (!event.target) return;
+    const handleDragEnd = (event: DragEvent) => {
+        const pos = { x: event.x, y: event.y };
+        const index = activeCardId();
 
-        // eslint-disable-next-line
-        // @ts-ignore
-        const el: HTMLElement = event.target;
-        setActiveCardId(+el.id);
+        console.log('Currently active card', activeCardId());
+
+        if (typeof index !== 'number') return;
+
+        const newCard = { ...cardsArr()[index], pos };
+
+        setCardsArr(cardsArr().map((e, i) => (i === index ? newCard : e)));
+        setActiveCardId(undefined);
     };
 
     return (
@@ -70,14 +68,18 @@ const GameArea: Component = () => {
             </div>
             <div
                 id="ga-main-play-area"
-                onMouseMove={(event) => handleMouseMove(event)}
+                // onMouseMove={(event) => handleMouseMove(event)}
             >
                 <For each={cardsArr()}>
-                    {(card) => (
+                    {(card, i) => (
                         <div
-                            onMouseDown={(event) => setActiveCard(event)}
-                            onMouseMove={(event) => handleMouseMove(event)}
-                            onMouseUp={setActiveCardId(undefined)}
+                            id={`${i()}`}
+                            draggable={true}
+                            onDragStart={(event) =>
+                                setActiveCard(event.currentTarget)
+                            }
+                            // onDrag={(event) => handleDrag(event)}
+                            onDragEnd={(event) => handleDragEnd(event)}
                         >
                             <Card {...card} />
                         </div>
