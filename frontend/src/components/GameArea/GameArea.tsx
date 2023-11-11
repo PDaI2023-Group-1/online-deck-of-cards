@@ -16,6 +16,7 @@ const defaultCardProps: ICardProps = {
 const GameArea: Component = () => {
     const [cardsArr, setCardsArr] = createSignal<Array<ICardProps>>([]);
     const [activeCardId, setActiveCardId] = createSignal<number>();
+    const [startPos, setStartPos] = createSignal({ x: 0, y: 0 });
 
     const addDeck = () => {
         for (let suit = 0; suit < 4; suit++) {
@@ -42,50 +43,69 @@ const GameArea: Component = () => {
         }
     };
 
-    const setActiveCard = (target: HTMLDivElement) => {
-        setActiveCardId(+target.id);
-    };
-
-    const handleDragEnd = (event: DragEvent) => {
+    const handleMouseMove = (event: MouseEvent) => {
         const pos = { x: event.x, y: event.y };
         const index = activeCardId();
-
-        console.log('Currently active card', activeCardId());
 
         if (typeof index !== 'number') return;
 
         const newCard = { ...cardsArr()[index], pos };
 
         setCardsArr(cardsArr().map((e, i) => (i === index ? newCard : e)));
+    };
+
+    const handleMouseDown = (event: MouseEvent, target: Element) => {
+        if (!target) return;
+
+        if (!target.id || target.id === '' || typeof +target.id !== 'number')
+            return;
+
+        setStartPos({ x: event.x, y: event.y });
+        setActiveCardId(+target.id);
+        console.log(startPos());
+    };
+
+    const handleMouseUp = (event: MouseEvent) => {
+        const index = activeCardId();
+
+        if (typeof index !== 'number') return;
+
+        const moved =
+            startPos().x - event.x !== 0 && startPos().y - event.y !== 0;
+        console.log(moved);
+        const pos = { x: event.x, y: event.y };
+
+        const newCard: ICardProps = {
+            ...cardsArr()[index],
+            pos: moved ? pos : cardsArr()[index].pos,
+            isFaceUp: moved
+                ? cardsArr()[index].isFaceUp
+                : !cardsArr()[index].isFaceUp,
+        };
+
+        setCardsArr(cardsArr().map((e, i) => (i === index ? newCard : e)));
         setActiveCardId(undefined);
     };
 
     return (
-        <div id="ga-container">
+        <div
+            id="ga-container"
+            onMouseMove={(event) => handleMouseMove(event)}
+            onMouseDown={(event) => handleMouseDown(event, event.target)}
+            onMouseUp={(event) => handleMouseUp(event)}
+        >
             <div class="ga-info-panel">
                 <button onClick={() => addDeck()}>Add deck</button>
                 <button onClick={() => resetDeck()}>Reset deck</button>
             </div>
-            <div
-                id="ga-main-play-area"
-                // onMouseMove={(event) => handleMouseMove(event)}
-            >
-                <For each={cardsArr()}>
-                    {(card, i) => (
-                        <div
-                            id={`${i()}`}
-                            draggable={true}
-                            onDragStart={(event) =>
-                                setActiveCard(event.currentTarget)
-                            }
-                            // onDrag={(event) => handleDrag(event)}
-                            onDragEnd={(event) => handleDragEnd(event)}
-                        >
-                            <Card {...card} />
-                        </div>
-                    )}
-                </For>
-            </div>
+
+            <For each={cardsArr()}>
+                {(card, i) => (
+                    <span id={`${i()}`} draggable={false}>
+                        <Card {...card} />
+                    </span>
+                )}
+            </For>
         </div>
     );
 };

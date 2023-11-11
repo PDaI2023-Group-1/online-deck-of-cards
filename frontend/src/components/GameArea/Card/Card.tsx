@@ -32,11 +32,20 @@ export interface ICardProps {
 const Card: Component<ICardProps> = (props) => {
     return (
         <div
-            class={`card-container`}
+            draggable={false}
+            class={
+                props.isFaceUp
+                    ? [
+                          'card-container',
+                          `card-suit-${props.suit}`,
+                          `card-value-${props.value}`,
+                      ].join(' ')
+                    : 'card-container'
+            }
             id={`${props.id}`}
             style={{ left: `${props.pos.x}px`, top: `${props.pos.y}px` }}
         >
-            Card
+            card
         </div>
     );
 };
