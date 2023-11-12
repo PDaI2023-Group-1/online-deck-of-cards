@@ -3,3 +3,5 @@ type User = {
   username: string;
   roomCode?: string;
 };
+
+export { User };

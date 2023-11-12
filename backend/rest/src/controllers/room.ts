@@ -6,6 +6,7 @@ import {
   roomCodeExists,
 } from "../handlers/roomCodeHandler";
 import { signToken } from "../middleware/authenticate";
+import { User } from "../../types/user";
 
 const createRoom = (req: Request, res: Response) => {
   type CreateRoomRequest = {

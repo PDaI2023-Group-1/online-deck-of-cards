@@ -15,8 +15,8 @@ const characters =
   "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
 const createCode = (): string => {
-  const bytes: Buffer = crypto.randomBytes(6);
-  let roomCode: string = "";
+  const bytes = crypto.randomBytes(6);
+  let roomCode = "";
 
   for (let i = 0; i < bytes.length; i++) {
     const index = bytes[i] % characters.length;
