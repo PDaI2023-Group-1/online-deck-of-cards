@@ -7,12 +7,6 @@ import {
 } from "../handlers/roomCodeHandler";
 import { signToken } from "../middleware/authenticate";
 
-type User = {
-  id: number;
-  username: string;
-  roomCode: string;
-};
-
 const createRoom = (req: Request, res: Response) => {
   type CreateRoomRequest = {
     maxPlayers: number | undefined;

@@ -2,11 +2,6 @@ import { Request, Response } from "express";
 import { createCode } from "../handlers/roomCodeHandler";
 import { signToken } from "../middleware/authenticate";
 
-type User = {
-  id: number;
-  username: string;
-};
-
 const createGuestUser = (req: Request, res: Response) => {
   const username = "User#" + createCode();
   const secret = process.env.SECRET_KEY;
