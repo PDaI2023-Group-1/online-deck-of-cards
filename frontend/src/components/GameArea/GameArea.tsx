@@ -7,7 +7,7 @@ import { addDeck, generateDeckArray, shuffleDeck } from './ga-utils';
 const defaultCardProps: ICardProps = {
     id: 0,
     pos: { x: 250, y: 150 },
-    isFaceUp: false,
+    isFaceUp: true,
     order: 0,
     cardState: ECardState.inDeck,
     playerId: '',
@@ -20,25 +20,22 @@ const GameArea: Component = () => {
     const [activeCardId, setActiveCardId] = createSignal<number>();
     const [startPos, setStartPos] = createSignal({ x: 0, y: 0 });
 
+    const handleMouseDown = (event: MouseEvent, target: Element) => {
+        if (!target.classList.contains('card-container')) return;
+
+        setStartPos({ x: event.x, y: event.y });
+        setActiveCardId(+target.id);
+    };
+
     const handleMouseMove = (event: MouseEvent) => {
         const pos = { x: event.x, y: event.y };
-        const index = activeCardId();
+        const index = deck().findIndex((el) => el.id === activeCardId());
 
         if (typeof index !== 'number') return;
 
         const newCard = { ...deck()[index], pos };
 
         setDeck(deck().map((e, i) => (i === index ? newCard : e)));
-    };
-
-    const handleMouseDown = (event: MouseEvent, target: Element) => {
-        if (!target) return;
-
-        if (!target.id || target.id === '' || typeof +target.id !== 'number')
-            return;
-
-        setStartPos({ x: event.x, y: event.y });
-        setActiveCardId(+target.id);
     };
 
     const handleMouseUp = (event: MouseEvent, target: Element) => {
@@ -86,11 +83,25 @@ const GameArea: Component = () => {
             </div>
 
             <For each={deck()}>
-                {(card, i) => (
-                    <span id={`${i()}`} draggable={false}>
-                        <Card {...card} />
-                    </span>
-                )}
+                {(card, i) => {
+                    const getProps = (
+                        props: ICardProps,
+                        index: number,
+                    ): ICardProps => {
+                        props.order = deck().length - index;
+                        return props;
+                    };
+
+                    return (
+                        <span
+                            id={`${i()}`}
+                            draggable={false}
+                            style={{ 'z-index': deck().length - i() }}
+                        >
+                            <Card {...getProps(card, i())} />
+                        </span>
+                    );
+                }}
             </For>
         </div>
     );

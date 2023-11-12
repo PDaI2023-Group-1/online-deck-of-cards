@@ -46,6 +46,7 @@ const Card: Component<ICardProps> = (props) => {
             style={{
                 left: `${props.pos.x - 20}px`,
                 top: `${props.pos.y - 28}px`,
+                'z-index': props.order,
             }}
         >
             {props.isFaceUp ? <>{props.value}</> : <>card</>}
