@@ -9,10 +9,11 @@ const createRoom = (req: Request, res: Response) => {
   type CreateRoomRequest = {
     maxPlayers: number | undefined;
     pinCode: string | undefined;
-    userId: number;
   };
 
-  const { maxPlayers, pinCode, userId }: CreateRoomRequest = req.body;
+  const { maxPlayers, pinCode }: CreateRoomRequest = req.body;
+
+  const userId = req.user!.id;
 
   if (userId === null || userId === undefined || typeof userId !== "number") {
     return res.status(400).json({ error: "Invalid user id" });

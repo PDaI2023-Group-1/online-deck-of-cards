@@ -1,6 +1,11 @@
 import { Request, Response } from "express";
 import { createCode } from "../handlers/roomCodeHandler";
-import jwt from "jsonwebtoken";
+import { signToken } from "../middleware/authenticate";
+
+type User = {
+  id: number;
+  username: string;
+};
 
 const createGuestUser = (req: Request, res: Response) => {
   const username = "User#" + createCode();
@@ -10,14 +15,18 @@ const createGuestUser = (req: Request, res: Response) => {
     return res.status(500).send();
   }
 
-  const data = {
+  const user: User = {
     id: Math.round(Math.random() * 10000),
     username: username,
   };
 
-  const token = jwt.sign(data, secret);
+  const token = signToken(user);
 
-  res.status(201).json({ username: username, token: token, userId: data.id });
+  if (token === null) {
+    return res.status(500).json({ error: "Unable to create user" });
+  }
+
+  res.status(201).json({ user: user, token: token });
 };
 
 export { createGuestUser };

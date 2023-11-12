@@ -10,8 +10,8 @@ describe("/user", () => {
   it("Guest should be created", async () => {
     const res = await request(app).post("/user/guest");
     expect(res.statusCode).toEqual(201);
-    expect(res.body.username).toBeDefined();
+    expect(res.body.user.username).toBeDefined();
     expect(res.body.token).toBeDefined();
-    expect(res.body.userId).toBeDefined();
+    expect(res.body.user.id).toBeDefined();
   });
 });
