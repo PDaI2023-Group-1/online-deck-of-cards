@@ -3,7 +3,15 @@ import {
   createRoomCode,
   roomCount,
   getRoomInfo,
+  roomCodeExists,
 } from "../handlers/roomCodeHandler";
+import { signToken } from "../middleware/authenticate";
+
+type User = {
+  id: number;
+  username: string;
+  roomCode: string;
+};
 
 const createRoom = (req: Request, res: Response) => {
   type CreateRoomRequest = {
@@ -47,4 +55,24 @@ const roomInfo = (req: Request, res: Response) => {
   res.json({ roomInfo: roomInfo });
 };
 
-export { createRoom, roomCapacity, roomInfo };
+const joinRoom = (req: Request, res: Response) => {
+  const roomCode = req.params.roomCode;
+  if (!roomCodeExists(roomCode)) {
+    return res.status(404).json({ error: "Room not found" });
+  }
+
+  const user: User = {
+    id: req.user!.id,
+    username: req.user!.username,
+    roomCode: roomCode,
+  };
+  const newToken = signToken(user);
+
+  if (newToken === null) {
+    return res.status(500).json({ error: "Unable to join room" });
+  }
+
+  return res.json({ user });
+};
+
+export { createRoom, roomCapacity, roomInfo, joinRoom };

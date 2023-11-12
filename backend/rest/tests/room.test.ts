@@ -31,7 +31,7 @@ describe("/room", () => {
 
   it("Should not have room info", async () => {
     const res = await request(app)
-      .get("/room/roomcode")
+      .get("/room/roomcode/info")
       .set("Authorization", `Bearer ${token}`);
     expect(res.statusCode).toEqual(200);
     expect(res.body).toHaveProperty("roomInfo");
@@ -55,7 +55,7 @@ describe("/room", () => {
 
   it("Should have room created with room code", async () => {
     const res = await request(app)
-      .get("/room/" + roomCode)
+      .get("/room/" + roomCode + "/info")
       .set("Authorization", `Bearer ${token}`);
 
     expect(res.statusCode).toEqual(200);
@@ -95,7 +95,7 @@ describe("/room", () => {
 
   it("Should have room created with room code and it should have custom data", async () => {
     const res = await request(app)
-      .get("/room/" + roomCode)
+      .get("/room/" + roomCode + "/info")
       .set("Authorization", `Bearer ${token}`);
 
     expect(res.statusCode).toEqual(200);
@@ -143,5 +143,16 @@ describe("/room", () => {
 
     expect(res.statusCode).toEqual(400);
     expect(res.body.error).toBe("Invalid pin code");
+  });
+
+  it("Should be able to join room", async () => {
+    const resGuest = await request(app).post("/user/guest");
+    const newToken = resGuest.body.token;
+
+    const res = await request(app)
+      .put("/room/" + roomCode)
+      .set("Authorization", `Bearer ${newToken}`);
+    expect(res.statusCode).toEqual(200);
+    expect(res.body.user.roomCode).toBe(roomCode);
   });
 });
