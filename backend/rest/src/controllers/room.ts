@@ -15,11 +15,9 @@ const createRoom = (req: Request, res: Response) => {
 
     const { maxPlayers, pinCode }: CreateRoomRequest = req.body;
 
-    if (!req?.user) return;
+    const userId = req.user!.id;
 
-    const userId = req.user.id;
-
-    if (userId === null || userId === undefined || typeof userId !== 'number') {
+    if (userId === null || userId === undefined) {
         return res.status(400).json({ error: 'Invalid user id' });
     }
 
@@ -59,7 +57,12 @@ const roomCapacity = (req: Request, res: Response) => {
 };
 
 const roomInfo = (req: Request, res: Response) => {
-    const roomCode = req.params.roomCode;
+    const roomCode = req.user!.roomCode;
+
+    if (roomCode === null || roomCode === undefined) {
+        return res.status(400).json({ error: 'Invalid room code' });
+    }
+
     const roomInfo = getRoomInfo(roomCode);
 
     res.json({ roomInfo: roomInfo });
