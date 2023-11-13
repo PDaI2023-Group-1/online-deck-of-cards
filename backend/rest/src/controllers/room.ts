@@ -33,8 +33,22 @@ const createRoom = (req: Request, res: Response) => {
         }
     }
 
+    const roomCode = createRoomCode(maxPlayers ?? 4, pinCode ?? null, userId);
+
+    const user: Request['user'] = {
+        id: req.user!.id,
+        username: req.user!.username,
+        roomCode: roomCode,
+    };
+    const newToken = signToken(user);
+
+    if (newToken === null) {
+        return res.status(500).json({ error: 'Unable to create room' });
+    }
+
     res.status(201).json({
-        roomCode: createRoomCode(maxPlayers ?? 4, pinCode ?? null, userId),
+        roomCode: roomCode,
+        token: newToken
     });
 };
 

@@ -3,7 +3,6 @@ import helmet from "helmet";
 import cors from "cors";
 import express, { Request, Response, NextFunction } from "express";
 
-import { helloWorldRouter } from "./routers/helloWorldRouter";
 import { roomRouter } from "./routers/roomRouter";
 import { userRouter } from "./routers/userRouter";
 import { verifyToken } from "./middleware/authenticate";
@@ -27,7 +26,6 @@ app.use(cors());
 
 app.use(errorHandler);
 
-app.use(helloWorldRouter);
 app.use(userRouter);
 
 // authenticated routes
