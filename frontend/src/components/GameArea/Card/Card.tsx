@@ -45,7 +45,7 @@ const Card: Component<ICardProps> = (props) => {
             id={`${props.id}`}
             style={{
                 left: `${props.pos.x - 20}px`,
-                top: `${props.pos.y - 28}px`,
+                top: `${props.pos.y - 25}px`,
                 'z-index': props.order,
             }}
         >

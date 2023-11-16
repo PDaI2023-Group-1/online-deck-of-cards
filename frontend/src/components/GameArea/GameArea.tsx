@@ -22,7 +22,6 @@ const GameArea: Component = () => {
 
     const handleMouseDown = (event: MouseEvent, target: Element) => {
         if (!target.classList.contains('card-container')) return;
-
         setStartPos({ x: event.x, y: event.y });
         setActiveCardId(+target.id);
     };
@@ -30,8 +29,7 @@ const GameArea: Component = () => {
     const handleMouseMove = (event: MouseEvent) => {
         const pos = { x: event.x, y: event.y };
         const index = deck().findIndex((el) => el.id === activeCardId());
-
-        if (typeof index !== 'number') return;
+        if (typeof index !== 'number' || index === -1) return;
 
         const newCard = { ...deck()[index], pos };
 
@@ -40,7 +38,6 @@ const GameArea: Component = () => {
 
     const handleMouseUp = (event: MouseEvent, target: Element) => {
         if (!target.classList.contains('card-container')) return;
-
         if (typeof activeCardId() === undefined || Number.isNaN(activeCardId()))
             return;
 
@@ -81,7 +78,6 @@ const GameArea: Component = () => {
                     Shuffle deck
                 </button>
             </div>
-
             <For each={deck()}>
                 {(card, i) => {
                     const getProps = (
@@ -96,7 +92,10 @@ const GameArea: Component = () => {
                         <span
                             id={`${i()}`}
                             draggable={false}
-                            style={{ 'z-index': deck().length - i() }}
+                            style={{
+                                'z-index': deck().length - i(),
+                                position: 'relative',
+                            }}
                         >
                             <Card {...getProps(card, i())} />
                         </span>
