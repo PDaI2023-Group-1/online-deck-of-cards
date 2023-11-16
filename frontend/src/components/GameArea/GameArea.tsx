@@ -4,6 +4,12 @@ import './GameAreaStyles.css';
 
 import { addDeck, generateDeckArray, shuffleDeck } from './ga-utils';
 
+interface IPlayer {
+    id: string;
+    pos: string;
+    cards: Array<ICardProps>;
+}
+
 const defaultCardProps: ICardProps = {
     id: 0,
     pos: { x: 250, y: 150 },
@@ -15,10 +21,17 @@ const defaultCardProps: ICardProps = {
     suit: ECardSuit.ace,
 };
 
+const playerProps: IPlayer = {
+    id: 'local',
+    pos: 'right',
+    cards: [],
+};
+
 const GameArea: Component = () => {
     const [deck, setDeck] = createSignal(generateDeckArray(defaultCardProps));
     const [activeCardId, setActiveCardId] = createSignal<number>();
     const [startPos, setStartPos] = createSignal({ x: 0, y: 0 });
+    const [players, setPlayers] = createSignal<Array<IPlayer>>([playerProps]);
 
     const handleMouseDown = (event: MouseEvent, target: Element) => {
         if (!target.classList.contains('card-container')) return;
@@ -60,13 +73,26 @@ const GameArea: Component = () => {
         setActiveCardId(undefined);
     };
 
+    const handleGiveCardToPlayer = (event: MouseEvent, target: Element) => {
+        if (
+            !target.classList.contains('ga-player') ||
+            activeCardId() === undefined
+        )
+            return;
+
+        console.log(event, target);
+    };
+
+    const handleShuffle = () => {
+        console.table(deck());
+
+        const newDeck = shuffleDeck(deck());
+        console.table(newDeck);
+        setDeck(newDeck);
+    };
+
     return (
-        <div
-            id="ga-container"
-            onMouseMove={(event) => handleMouseMove(event)}
-            onMouseDown={(event) => handleMouseDown(event, event.target)}
-            onMouseUp={(event) => handleMouseUp(event, event.target)}
-        >
+        <>
             <div class="ga-info-panel">
                 <button
                     onClick={() => setDeck(addDeck(deck(), defaultCardProps))}
@@ -74,35 +100,55 @@ const GameArea: Component = () => {
                     Add deck
                 </button>
                 <button onClick={() => setDeck([])}>Reset deck</button>
-                <button onClick={() => setDeck(shuffleDeck(deck()))}>
-                    Shuffle deck
-                </button>
+                <button onClick={() => handleShuffle()}>Shuffle deck</button>
             </div>
-            <For each={deck()}>
-                {(card, i) => {
-                    const getProps = (
-                        props: ICardProps,
-                        index: number,
-                    ): ICardProps => {
-                        props.order = deck().length - index;
-                        return props;
-                    };
+            <div
+                id="ga-container"
+                onMouseMove={(event) => handleMouseMove(event)}
+                onMouseDown={(event) => handleMouseDown(event, event.target)}
+                onMouseUp={(event) => handleMouseUp(event, event.target)}
+            >
+                <For each={deck()}>
+                    {(card, i) => {
+                        const getProps = (
+                            props: ICardProps,
+                            index: number,
+                        ): ICardProps => {
+                            props.order = deck().length - index;
+                            return props;
+                        };
 
+                        return (
+                            <span id={`${i()}`} draggable={false}>
+                                <Card {...getProps(card, i())} />
+                            </span>
+                        );
+                    }}
+                </For>
+            </div>
+            <For each={players()}>
+                {(player) => {
                     return (
-                        <span
-                            id={`${i()}`}
-                            draggable={false}
+                        <div
+                            onMouseEnter={(event) =>
+                                handleGiveCardToPlayer(event, event.target)
+                            }
+                            class={`ga-player ${player.id}`}
                             style={{
-                                'z-index': deck().length - i(),
+                                'background-color': 'blueviolet',
+                                width: '275px',
+                                height: '75px',
+                                'margin-top': '15px',
+                                'z-index': `${1000}`,
                                 position: 'relative',
                             }}
                         >
-                            <Card {...getProps(card, i())} />
-                        </span>
+                            Player id: {player.id}
+                        </div>
                     );
                 }}
             </For>
-        </div>
+        </>
     );
 };
 
