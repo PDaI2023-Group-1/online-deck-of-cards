@@ -16,6 +16,7 @@ export enum ECardSuit {
 }
 
 export interface ICardProps {
+    id: number;
     pos: { x: number; y: number };
     isFaceUp: boolean;
     order: number;
@@ -31,10 +32,24 @@ export interface ICardProps {
 const Card: Component<ICardProps> = (props) => {
     return (
         <div
-            class={'card-container'}
-            style={{ left: `${props.pos.x}px`, top: `${props.pos.y}px` }}
+            draggable={false}
+            class={
+                props.isFaceUp
+                    ? [
+                          'card-container',
+                          `card-suit-${props.suit}`,
+                          `card-value-${props.value}`,
+                      ].join(' ')
+                    : 'card-container'
+            }
+            id={`${props.id}`}
+            style={{
+                left: `${props.pos.x - 20}px`,
+                top: `${props.pos.y - 28}px`,
+                'z-index': props.order,
+            }}
         >
-            Card
+            {props.isFaceUp ? <>{props.value}</> : <>card</>}
         </div>
     );
 };

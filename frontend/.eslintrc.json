@@ -4,11 +4,10 @@
         "es2021": true
     },
     "parser": "@typescript-eslint/parser",
-    "plugins": ["solid", "prettier"],
+    "plugins": ["solid"],
     "extends": [
         "plugin:@typescript-eslint/recommended",
-        "plugin:solid/typescript",
-        "plugin:prettier/recommended"
+        "plugin:solid/typescript"
     ],
     "parserOptions": {
         "ecmaVersion": "latest",
