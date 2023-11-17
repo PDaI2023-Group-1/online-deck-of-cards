@@ -1,10 +1,4 @@
-import {
-    Component,
-    createSignal,
-    For,
-    createEffect,
-    createMemo,
-} from 'solid-js';
+import { Component, createSignal, For, createEffect } from 'solid-js';
 import { useNavigate } from '@solidjs/router';
 import axios from 'axios';
 
