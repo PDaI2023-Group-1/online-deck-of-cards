@@ -49,7 +49,7 @@ const createRoomCode = (
 };
 
 const roomCodeExists = (roomCode: string): boolean => {
-    return rooms.hasOwnProperty(roomCode);
+    return Object.prototype.hasOwnProperty.call(rooms, roomCode);
 };
 
 const roomCount = (): number => {
