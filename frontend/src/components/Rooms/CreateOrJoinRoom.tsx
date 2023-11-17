@@ -71,7 +71,7 @@ const CreateOrJoinRoom: Component = () => {
                     Create Room
                 </button>
             </div>
-            <div class="border-r border-blue-400 h-40"></div>
+            <div class="border-r border-blue-400 h-40" />
             <div class="flex flex-col justify-center items-center ml-8">
                 <form>
                     <label class="block text-gray-700 text-sm font-bold mb-2">
