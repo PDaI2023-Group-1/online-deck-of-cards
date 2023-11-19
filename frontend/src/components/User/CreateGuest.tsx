@@ -6,15 +6,15 @@ const CreateGuest: Component = () => {
     const navigate = useNavigate();
 
     const createGuest = async () => {
-        const data = await axios.post('http://127.0.0.1:8080/user/guest');
-
-        console.log(data);
-        if (data.status === 201) {
-            console.log('User created');
-            localStorage.setItem('token', data.data.token);
-            navigate('/room/create');
-        } else {
-            console.log('something went wrong');
+        try {
+            const data = await axios.post('http://127.0.0.1:8080/user/guest');
+            console.log(data);
+            if (data.status === 201) {
+                localStorage.setItem('token', data.data.token);
+                navigate('/room/create');
+            }
+        } catch (error) {
+            console.log(error);
         }
     };
 

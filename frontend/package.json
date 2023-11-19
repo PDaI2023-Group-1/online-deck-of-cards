@@ -29,6 +29,7 @@
         "vite-plugin-solid": "^2.7.0"
     },
     "dependencies": {
+        "@solid-primitives/clipboard": "^1.5.7",
         "@solidjs/router": "^0.8.3",
         "axios": "^1.6.2",
         "solid-js": "^1.7.6"

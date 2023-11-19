@@ -1,6 +1,7 @@
 import { Component, createSignal, For, createEffect } from 'solid-js';
 import { useNavigate } from '@solidjs/router';
 import axios from 'axios';
+import { writeClipboard } from '@solid-primitives/clipboard';
 
 const WaitingRoom: Component = () => {
     const navigate = useNavigate();
@@ -117,7 +118,15 @@ const WaitingRoom: Component = () => {
                     </div>
                 </div>
             </div>
-            <div class="mt-6 flex justify-center">
+            <div class="mt-6 justify-center">
+                <button
+                    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                    onClick={() => writeClipboard(roomCode())}
+                >
+                    Copy room code
+                </button>
+            </div>
+            <div class="mt-6 justify-center">
                 <button
                     class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
                     onClick={() => navigate('/game/' + roomCode())}

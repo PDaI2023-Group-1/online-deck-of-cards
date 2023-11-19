@@ -13,37 +13,40 @@ const CreateOrJoinRoom: Component = () => {
     };
 
     const createRoom = async () => {
-        const response = await axios.post(
-            'http://127.0.0.1:8080/room',
-            { maxPlayers: maxPlayers() },
-            config,
-        );
+        try {
+            const response = await axios.post(
+                'http://127.0.0.1:8080/room',
+                { maxPlayers: maxPlayers() },
+                config,
+            );
 
-        console.log(response);
-        if (response.status === 201) {
-            console.log('Room created');
-            localStorage.setItem('token', response.data.token);
-            navigate('/room/' + response.data.roomCode);
-        } else {
-            console.log('Something went wrong');
+            if (response.status === 201) {
+                localStorage.setItem('token', response.data.token);
+                navigate('/room/' + response.data.roomCode);
+            }
+        } catch (error) {
+            console.log(error);
         }
     };
 
     const joinRoom = async () => {
-        console.log(roomCode());
-        const response = await axios.put(
-            'http://127.0.0.1:8080/room/' + roomCode(),
-            null,
-            config,
-        );
+        if (roomCode() === '') {
+            return;
+        }
 
-        console.log(response);
-        if (response.status === 200) {
-            console.log('Room joined');
-            localStorage.setItem('token', response.data.token);
-            navigate('/room/' + roomCode());
-        } else {
-            console.log('Something went wrong');
+        try {
+            const response = await axios.put(
+                'http://127.0.0.1:8080/room/' + roomCode(),
+                null,
+                config,
+            );
+            console.log(response);
+            if (response.status === 200) {
+                localStorage.setItem('token', response.data.token);
+                navigate('/room/' + roomCode());
+            }
+        } catch (error) {
+            console.log(error);
         }
     };
 
