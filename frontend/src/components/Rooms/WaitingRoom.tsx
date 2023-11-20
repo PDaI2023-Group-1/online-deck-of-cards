@@ -1,11 +1,11 @@
-import { Component, createSignal, For, createEffect } from 'solid-js';
+import { Component, createSignal, For, createEffect, onMount } from 'solid-js';
 import { useNavigate } from '@solidjs/router';
 import axios from 'axios';
 import { writeClipboard } from '@solid-primitives/clipboard';
 
 const WaitingRoom: Component = () => {
     const navigate = useNavigate();
-    const [players, setPlayers] = createSignal([]);
+    const [players, setPlayers] = createSignal<number[]>([]);
     const [currentPlayerCount, setCurrentPlayerCount] = createSignal(0);
     const [maxPlayerCount, setMaxPlayerCount] = createSignal(4);
     const [roomCode, setRoomCode] = createSignal('');
@@ -13,25 +13,43 @@ const WaitingRoom: Component = () => {
     const [cardsPerPlayer, setCardsPerPlayer] = createSignal(0);
     const [jokerCount, setJokerCount] = createSignal(0);
 
-    createEffect(() => {
+    type RoomInfo = {
+        roomInfo: {
+            maxPlayers: number;
+            pinCode: string | null;
+            players: number[];
+            ownerId: number;
+            roomCode: string;
+        };
+    };
+
+    onMount(async () => {
         const token = localStorage.getItem('token');
         const config = {
             headers: { Authorization: `Bearer ${token}` },
         };
-        axios
-            .get('http://127.0.0.1:8080/room/info', config)
-            .then((response) => {
-                setPlayers(response.data.roomInfo.players);
-                setCurrentPlayerCount(response.data.roomInfo.players.length);
-                setMaxPlayerCount(response.data.roomInfo.maxPlayers);
-                setRoomCode(response.data.roomInfo.roomCode);
-            })
-            .catch((error) => {
-                console.error(error);
-            });
 
+        try {
+            const { data, status } = await axios.get<RoomInfo>(
+                'http://127.0.0.1:8080/room/info',
+                config,
+            );
+
+            if (status !== 200 || data.roomInfo === null) {
+                return;
+            }
+
+            setPlayers(data.roomInfo.players);
+            setCurrentPlayerCount(data.roomInfo.players.length);
+            setMaxPlayerCount(data.roomInfo.maxPlayers);
+            setRoomCode(data.roomInfo.roomCode);
+        } catch (error) {
+            console.error(error);
+        }
+    });
+
+    createEffect(() => {
         setJokerCount(Math.min(deckCount() * 4, jokerCount()));
-
         setCardsPerPlayer(
             Math.floor(
                 Math.min(
@@ -50,6 +68,12 @@ const WaitingRoom: Component = () => {
                 }}
             </For>
         );
+    };
+
+    const startGame = () => {
+        if (roomCode() !== '') {
+            navigate('/game/' + roomCode());
+        }
     };
 
     return (
@@ -129,7 +153,7 @@ const WaitingRoom: Component = () => {
             <div class="mt-6 justify-center">
                 <button
                     class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                    onClick={() => navigate('/game/' + roomCode())}
+                    onClick={() => startGame()}
                 >
                     Start Game
                 </button>

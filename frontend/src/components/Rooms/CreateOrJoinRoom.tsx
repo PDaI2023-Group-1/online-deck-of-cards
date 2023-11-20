@@ -61,6 +61,7 @@ const CreateOrJoinRoom: Component = () => {
                         type="range"
                         min="2"
                         max="8"
+                        class="cursor-pointer"
                         value={maxPlayers()}
                         onInput={(e) =>
                             setMaxPlayers(parseInt(e.currentTarget.value))
