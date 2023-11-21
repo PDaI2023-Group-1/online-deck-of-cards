@@ -4,6 +4,7 @@ import {
     roomCount,
     getRoomInfo,
     roomCodeExists,
+    updateRoomInfo,
 } from '../handlers/roomCodeHandler';
 import { signToken } from '../middleware/authenticate';
 
@@ -17,7 +18,7 @@ const createRoom = (req: Request, res: Response) => {
 
     const userId = req.user!.id;
 
-    if (userId === null || userId === undefined || typeof userId !== 'number') {
+    if (userId === null || userId === undefined) {
         return res.status(400).json({ error: 'Invalid user id' });
     }
 
@@ -33,8 +34,22 @@ const createRoom = (req: Request, res: Response) => {
         }
     }
 
+    const roomCode = createRoomCode(maxPlayers ?? 4, pinCode ?? null, userId);
+
+    const user = {
+        id: req.user!.id,
+        username: req.user!.username,
+        roomCode: roomCode,
+    };
+    const newToken = signToken(user);
+
+    if (newToken === null) {
+        return res.status(500).json({ error: 'Unable to create room' });
+    }
+
     res.status(201).json({
-        roomCode: createRoomCode(maxPlayers ?? 4, pinCode ?? null, userId),
+        roomCode: roomCode,
+        token: newToken,
     });
 };
 
@@ -43,7 +58,12 @@ const roomCapacity = (req: Request, res: Response) => {
 };
 
 const roomInfo = (req: Request, res: Response) => {
-    const roomCode = req.params.roomCode;
+    const roomCode = req.user!.roomCode;
+
+    if (roomCode === null || roomCode === undefined) {
+        return res.status(400).json({ error: 'Invalid room code' });
+    }
+
     const roomInfo = getRoomInfo(roomCode);
 
     res.json({ roomInfo: roomInfo });
@@ -55,7 +75,14 @@ const joinRoom = (req: Request, res: Response) => {
         return res.status(404).json({ error: 'Room not found' });
     }
 
-    const user: Request['user'] = {
+    const roomInfo = getRoomInfo(roomCode);
+
+    const playerList = roomInfo!.players;
+    playerList.push(req.user!.id);
+
+    updateRoomInfo(roomCode, playerList);
+
+    const user = {
         id: req.user!.id,
         username: req.user!.username,
         roomCode: roomCode,
@@ -66,7 +93,7 @@ const joinRoom = (req: Request, res: Response) => {
         return res.status(500).json({ error: 'Unable to join room' });
     }
 
-    return res.json({ user });
+    return res.json({ user, token: newToken });
 };
 
 export { createRoom, roomCapacity, roomInfo, joinRoom };
