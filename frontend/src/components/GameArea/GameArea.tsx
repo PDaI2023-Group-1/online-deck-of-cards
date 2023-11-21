@@ -122,6 +122,7 @@ const GameArea: Component = () => {
     };
 
     const handleHandCardClick = (event: MouseEvent, target: Element) => {
+        if (Number.isNaN(+target.id)) return;
         const index = players()[0].cards.findIndex(
             (el) => el.id === +target.id,
         );
@@ -132,7 +133,6 @@ const GameArea: Component = () => {
         const newCards2 = players()[0].cards.slice(index + 1);
 
         newCards = newCards.concat(newCards2);
-        console.log(newCards);
         const newPlayers = [
             { ...players()[0], cards: newCards },
             ...players().slice(1),
@@ -143,7 +143,7 @@ const GameArea: Component = () => {
             cardState: ECardState.onTable,
             playerId: '',
         };
-        setDeck(deck().map((e, i) => (i === index ? updatedCard : e)));
+        setDeck(deck().map((e, i) => (i === deckIndex ? updatedCard : e)));
         setPlayers(newPlayers);
     };
 
@@ -187,6 +187,7 @@ const GameArea: Component = () => {
                 {(player) => {
                     return (
                         <div
+                            draggable={false}
                             onMouseEnter={(event) =>
                                 handleGiveCardToPlayer(event, event.target)
                             }
@@ -200,13 +201,19 @@ const GameArea: Component = () => {
                                 position: 'relative',
                             }}
                         >
-                            Player id: {player.id}
-                            <br />
-                            Cards in hand:
+                            <div draggable={false}>
+                                <p draggable={false}>
+                                    Player id: {player.id}
+                                    <br />
+                                    Cards in hand:
+                                </p>
+                            </div>
+
                             <div
                                 onClick={(event) =>
                                     handleHandCardClick(event, event.target)
                                 }
+                                draggable={false}
                             >
                                 <Hand {...players()[0].cards} />
                             </div>
