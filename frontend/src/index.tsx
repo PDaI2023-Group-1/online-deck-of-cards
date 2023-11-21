@@ -3,10 +3,16 @@ import { render } from 'solid-js/web';
 import { Router, Routes, Route } from '@solidjs/router';
 import { lazy } from 'solid-js';
 import 'solid-devtools';
-
 import App from './App';
+import './index.css';
 
 const GameArea = lazy(() => import('./components/GameArea/GameArea'));
+const CreateGuest = lazy(() => import('./components/User/CreateGuest'));
+const CreateOrJoinRoom = lazy(
+    () => import('./components/Rooms/CreateOrJoinRoom'),
+);
+
+const WaitingRoom = lazy(() => import('./components/Rooms/WaitingRoom'));
 
 const root = document.getElementById('root');
 
@@ -21,6 +27,9 @@ render(
         <Router>
             <Routes>
                 <Route path="/" component={App} />
+                <Route path="/user" component={CreateGuest} />
+                <Route path="/room/create" component={CreateOrJoinRoom} />
+                <Route path="/room/:roomCode" component={WaitingRoom} />
                 <Route path="/game/:id" component={GameArea} />
             </Routes>
         </Router>
