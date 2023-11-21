@@ -33,6 +33,7 @@ const Card: Component<ICardProps> = (props) => {
     return (
         <div
             draggable={false}
+            hidden={props.cardState === ECardState.inHand}
             class={
                 props.isFaceUp
                     ? [
@@ -45,8 +46,7 @@ const Card: Component<ICardProps> = (props) => {
             id={`${props.id}`}
             style={{
                 left: `${props.pos.x - 20}px`,
-                top: `${props.pos.y - 28}px`,
-                'z-index': props.order,
+                top: `${props.pos.y - 25}px`,
             }}
         >
             {props.isFaceUp ? <>{props.value}</> : <>card</>}
