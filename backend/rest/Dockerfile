@@ -15,7 +15,7 @@ RUN npm install
 COPY . .
 
 # Expose the port that the application will listen on
-EXPOSE 8000
+EXPOSE 8080
 
 # täsä on kyllä dev juttuja vaa mutta ei haittaa
 # Start the application
