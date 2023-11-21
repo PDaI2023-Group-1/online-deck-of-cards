@@ -80,7 +80,29 @@ const GameArea: Component = () => {
         )
             return;
 
-        console.log(event, target);
+        if (target.classList.contains('local')) {
+            const index = deck().findIndex((el) => el.id === activeCardId());
+
+            const updatedCard: ICardProps = {
+                ...deck()[index],
+                cardState: ECardState.inHand,
+                playerId: players()[0].id,
+            };
+
+            const updatedPlayer: IPlayer = {
+                ...players()[0],
+                cards: [...players()[0].cards, updatedCard],
+            };
+
+            setPlayers(
+                players().map((player, i) => {
+                    if (i === 0) return updatedPlayer;
+                    return player;
+                }),
+            );
+            setDeck(deck().map((e, i) => (i === index ? updatedCard : e)));
+            setActiveCardId(undefined);
+        }
     };
 
     const handleShuffle = () => {
@@ -126,6 +148,7 @@ const GameArea: Component = () => {
                     }}
                 </For>
             </div>
+            {/* move player to its own component, this is quickly getting out of hand */}
             <For each={players()}>
                 {(player) => {
                     return (
@@ -144,6 +167,14 @@ const GameArea: Component = () => {
                             }}
                         >
                             Player id: {player.id}
+                            Cards in hand:{' '}
+                            <For each={player.cards}>
+                                {(card) => (
+                                    <p>
+                                        suit: {card.suit} val: {card.value}
+                                    </p>
+                                )}
+                            </For>
                         </div>
                     );
                 }}

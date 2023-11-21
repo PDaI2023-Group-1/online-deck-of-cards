@@ -33,6 +33,7 @@ const Card: Component<ICardProps> = (props) => {
     return (
         <div
             draggable={false}
+            hidden={props.cardState === ECardState.inHand ?? 'hidden'}
             class={
                 props.isFaceUp
                     ? [
