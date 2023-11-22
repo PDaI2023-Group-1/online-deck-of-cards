@@ -3,6 +3,7 @@ import { A, useNavigate } from '@solidjs/router';
 
 const App: Component = () => {
     const nav = useNavigate();
+
     return (
         <div
             class="app-container"
