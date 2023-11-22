@@ -17,6 +17,7 @@ const App: Component = () => {
             </A>
 
             <button onClick={() => nav('/user')}>Create user</button>
+            <button onClick={() => nav('/test/')}>Box test</button>
         </div>
     );
 };
