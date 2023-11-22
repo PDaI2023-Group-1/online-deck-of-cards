@@ -2,11 +2,11 @@ import { createSignal, onCleanup } from 'solid-js';
 
 interface BoxProps {
     ws: WebSocket;
-    position: { x: number; y: number }; // Add this line
+    position: { x: number; y: number };
 }
 
 const Box = (props: BoxProps) => {
-    const [boxRef, setBoxRef] = createSignal<HTMLDivElement>(); // Create the ref using createSignal
+    const [boxRef, setBoxRef] = createSignal<HTMLDivElement>();
 
     const updatePosition = (event: MouseEvent) => {
         const newPosition = { x: event.clientX - 50, y: event.clientY - 50 };

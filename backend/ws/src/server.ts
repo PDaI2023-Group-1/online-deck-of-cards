@@ -1,14 +1,6 @@
-import { createServer } from 'http';
-import express = require('express');
-import { WebSocketServer, WebSocket } from 'ws';
-import cors from 'cors';
+import WebSocket, { WebSocketServer } from 'ws';
 
-const app = express();
-const server = createServer(app);
-
-app.use(cors({ origin: '*' }));
-
-const wss = new WebSocketServer({ server });
+const wss = new WebSocketServer({ port: 8080 });
 
 interface BoxPosition {
     type: 'move-box';
@@ -36,13 +28,4 @@ wss.on('connection', (ws: WebSocket) => {
     });
 
     ws.on('error', (error) => console.error('WebSocket error:', error));
-});
-
-// Define any additional routes you need
-app.get('/', (req, res) => res.send('Hello World from WebSocket Server!'));
-
-// Start the server
-const PORT = 3000;
-server.listen(PORT, () => {
-    console.log(`Server is listening on port ${PORT}`);
 });
