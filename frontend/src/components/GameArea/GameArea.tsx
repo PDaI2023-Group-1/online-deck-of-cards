@@ -2,8 +2,10 @@ import { Component, For, createSignal, onMount } from 'solid-js';
 import Card, { ICardProps, ECardState, ECardSuit } from './Card/Card';
 import Hand from './Hand/Hand';
 import './GameAreaStyles.css';
+import WSClient from '../../API/WSClient';
 
 import { addDeck, generateDeckArray, shuffleDeck } from './ga-utils';
+import { IMoveCard } from '../../../types/custom';
 
 export interface IPlayer {
     id: string;
@@ -34,6 +36,28 @@ const GameArea: Component = () => {
     const [startPos, setStartPos] = createSignal({ x: 0, y: 0 });
     const [players, setPlayers] = createSignal<Array<IPlayer>>([playerProps]);
 
+    const wsClient = new WSClient('local');
+
+    // eslint-disable-next-line solid/reactivity
+    wsClient.onMessage((data) => {
+        console.log(data);
+        if (data.event === 'move-card') {
+            const newdata = data as IMoveCard;
+            const index = deck().findIndex(
+                (el) => el.id === newdata.payload.data.cardId,
+            );
+            if (typeof index !== 'number' || index === -1) return;
+            const pos = {
+                x: newdata.payload.data.x,
+                y: newdata.payload.data.y,
+            };
+
+            const newCard = { ...deck()[index], pos };
+
+            setDeck(deck().map((e, i) => (i === index ? newCard : e)));
+        }
+    });
+
     onMount(() => {
         setDeck(shuffleDeck(generateDeckArray(defaultCardProps)));
     });
@@ -54,6 +78,14 @@ const GameArea: Component = () => {
         const newCard = { ...deck()[index], pos };
 
         setDeck(deck().map((e, i) => (i === index ? newCard : e)));
+        if (typeof activeCardId() === 'undefined') return;
+
+        wsClient.moveCard({
+            cardId: activeCardId() || -4,
+            state: deck()[index].cardState,
+            x: pos.x,
+            y: pos.y,
+        });
     };
 
     const handleMouseUp = (event: MouseEvent, target: Element) => {

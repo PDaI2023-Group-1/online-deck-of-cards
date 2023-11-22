@@ -1,14 +1,14 @@
 import WebSocket, { WebSocketServer } from 'ws';
 
 const wss = new WebSocketServer({ port: 8080 });
-
+/* 
 interface BoxPosition {
     type: 'move-box';
     payload: {
         x: number;
         y: number;
     };
-}
+} */
 
 wss.on('connection', (ws: WebSocket) => {
     console.log('A new client Connected');
@@ -16,12 +16,26 @@ wss.on('connection', (ws: WebSocket) => {
     ws.send(JSON.stringify({ message: 'Welcome New Client!' }));
 
     ws.on('message', (data: string) => {
-        const message: BoxPosition = JSON.parse(data);
+        const message: BaseMessage = JSON.parse(data);
 
-        if (message.type === 'move-box') {
+        if (message.event === 'move-box') {
             wss.clients.forEach((client) => {
                 if (client.readyState === WebSocket.OPEN) {
                     client.send(JSON.stringify(message));
+                }
+            });
+        }
+
+        if (message.event === 'move-card') {
+            const msg = message as UpdateCardPosition;
+            wss.clients.forEach((client) => {
+                if (client.readyState === WebSocket.OPEN) {
+                    client.send(
+                        JSON.stringify({
+                            event: message.event,
+                            payload: msg.payload,
+                        })
+                    );
                 }
             });
         }
