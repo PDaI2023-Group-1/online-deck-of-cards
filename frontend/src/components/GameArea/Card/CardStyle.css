@@ -2,5 +2,37 @@
     width: 2.5rem;
     height: 3.5rem;
     position: fixed;
-    background-color: rgb(221, 61, 66);
+    background-color: white;
+    border: 1px solid black;
+    border-radius: 5px;
+
+    user-select: none;
+    -moz-user-select: none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+    -o-user-select: none;
+}
+
+.card-suit-0 {
+    /* diamond */
+    background-color: blue;
+    color: white;
+}
+
+.card-suit-1 {
+    /* heart */
+    background-color: rgb(222, 66, 66);
+    color: white;
+}
+
+.card-suit-2 {
+    /* ace */
+    background-color: black;
+    color: white;
+}
+
+.card-suit-3 {
+    /* spade */
+    background-color: antiquewhite;
+    color: white;
 }

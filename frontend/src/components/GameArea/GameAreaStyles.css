@@ -1,18 +1,5 @@
 #ga-container {
-    display: flex;
-    align-self: center;
-    justify-self: center;
-    width: 75%;
-    height: 800px;
-    padding: 20px;
-    margin: 0 auto;
+    height: 600px;
+    width: 600px;
     background-color: aquamarine;
-
-    flex-direction: column;
-}
-
-#ga-main-play-area {
-    background-color: cadetblue;
-    border: 1px solid blue;
-    height: 100%;
 }

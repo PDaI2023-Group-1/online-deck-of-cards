@@ -1,7 +1,8 @@
 import type { Component } from 'solid-js';
-import { A } from '@solidjs/router';
+import { A, useNavigate } from '@solidjs/router';
 
 const App: Component = () => {
+    const nav = useNavigate();
     return (
         <div
             class="app-container"
@@ -11,11 +12,12 @@ const App: Component = () => {
                 width: '25%',
             }}
         >
-            <button>
-                <A href={`/game/${Math.floor(Math.random() * 1000000)}`}>
-                    Create game
-                </A>
-            </button>
+            <A href={`/game/${Math.floor(Math.random() * 1000000)}`}>
+                <button>Create game</button>
+            </A>
+
+            <button onClick={() => nav('/user')}>Create user</button>
+            <button onClick={() => nav('/test/')}>Box test</button>
         </div>
     );
 };
