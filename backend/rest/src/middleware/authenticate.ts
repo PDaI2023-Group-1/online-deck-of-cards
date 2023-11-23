@@ -27,12 +27,12 @@ const verifyToken = (req: Request, res: Response, next: NextFunction) => {
             return res.status(401).json({ error: 'Invalid token' });
         }
 
-        req.user = decodedToken as Request['user'];
+        req.user = decodedToken as User;
         next();
     });
 };
 
-const signToken = (user: Request['user']): string | null => {
+const signToken = (user: User): string | null => {
     if (
         process.env.SECRET_KEY === undefined ||
         process.env.SECRET_KEY === null
