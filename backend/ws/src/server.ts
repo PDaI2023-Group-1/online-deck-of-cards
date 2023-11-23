@@ -16,26 +16,20 @@ wss.on('connection', (ws: WebSocket) => {
     ws.send(JSON.stringify({ message: 'Welcome New Client!' }));
 
     ws.on('message', (data: string) => {
-        const message: BaseMessage = JSON.parse(data);
+        const message: WSData = JSON.parse(data);
 
-        if (message.event === 'move-box') {
+        /* if (message.event === 'move-box') {
             wss.clients.forEach((client) => {
                 if (client.readyState === WebSocket.OPEN) {
                     client.send(JSON.stringify(message));
                 }
             });
-        }
+        } */
 
         if (message.event === 'move-card') {
-            const msg = message as UpdateCardPosition;
             wss.clients.forEach((client) => {
                 if (client.readyState === WebSocket.OPEN) {
-                    client.send(
-                        JSON.stringify({
-                            event: message.event,
-                            payload: msg.payload,
-                        })
-                    );
+                    client.send(JSON.stringify(message));
                 }
             });
         }

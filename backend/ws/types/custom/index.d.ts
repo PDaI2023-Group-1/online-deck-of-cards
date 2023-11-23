@@ -12,17 +12,20 @@ declare type ICardPosition = {
     y: number;
 };
 
-declare interface BaseMessage {
-    event: string;
-    payload: {
-        id: string;
-        data: unknown;
-    };
-}
+type MoveCardData = {
+    event: 'move-card';
+    playerId: string;
+    cardId: number;
+    state: ECardState;
+    x: number;
+    y: number;
+};
 
-declare interface UpdateCardPosition extends BaseMessage {
-    payload: {
-        id: string;
-        data: ICardPosition;
-    };
-}
+type FlipCardData = {
+    event: 'flip-card';
+    playerId: string;
+    cardId: string;
+    isfaceUp: boolean;
+};
+
+declare type WSData = MoveCardData | FlipCardData;

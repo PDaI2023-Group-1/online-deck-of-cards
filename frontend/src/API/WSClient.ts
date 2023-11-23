@@ -1,14 +1,31 @@
-import { IData } from '../../types/custom';
 import { ECardState } from '../components/GameArea/Card/Card';
 
 type ICardPosition = {
+    cardId: number | undefined;
+    state: ECardState;
+    x: number;
+    y: number;
+};
+
+type MoveCardData = {
+    event: 'move-card';
+    playerId: string;
     cardId: number;
     state: ECardState;
     x: number;
     y: number;
 };
 
-type MessageCallback = (data: IData) => void;
+type FlipCardData = {
+    event: 'flip-card';
+    playerId: string;
+    cardId: string;
+    isfaceUp: boolean;
+};
+
+export type WSData = MoveCardData | FlipCardData;
+
+type MessageCallback = (data: WSData) => void;
 
 class WSClient {
     private client: WebSocket;
@@ -34,12 +51,16 @@ class WSClient {
 
     moveCard(cardPos: ICardPosition) {
         if (!this.serverIsReady) return;
-        this.client.send(
-            JSON.stringify({
-                event: 'move-card',
-                payload: { playerId: this.playerId, data: cardPos },
-            }),
-        );
+        if (cardPos.cardId === undefined) return;
+        const message: MoveCardData = {
+            event: 'move-card',
+            cardId: cardPos.cardId,
+            playerId: this.playerId,
+            state: cardPos.state,
+            x: cardPos.x,
+            y: cardPos.y,
+        };
+        this.client.send(JSON.stringify(message));
     }
 
     flipCard(cardId: string) {

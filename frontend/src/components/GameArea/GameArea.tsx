@@ -5,7 +5,6 @@ import './GameAreaStyles.css';
 import WSClient from '../../API/WSClient';
 
 import { addDeck, generateDeckArray, shuffleDeck } from './ga-utils';
-import { IMoveCard } from '../../../types/custom';
 
 export interface IPlayer {
     id: string;
@@ -40,16 +39,14 @@ const GameArea: Component = () => {
 
     // eslint-disable-next-line solid/reactivity
     wsClient.onMessage((data) => {
-        console.log(data);
         if (data.event === 'move-card') {
-            const newdata = data as IMoveCard;
-            const index = deck().findIndex(
-                (el) => el.id === newdata.payload.data.cardId,
-            );
+            console.log(data);
+            // if (data.playerId === players()[0].id) return; commented this line for now as all players have id local
+            const index = deck().findIndex((el) => el.id === data.cardId);
             if (typeof index !== 'number' || index === -1) return;
             const pos = {
-                x: newdata.payload.data.x,
-                y: newdata.payload.data.y,
+                x: data.x,
+                y: data.y,
             };
 
             const newCard = { ...deck()[index], pos };
@@ -81,7 +78,7 @@ const GameArea: Component = () => {
         if (typeof activeCardId() === 'undefined') return;
 
         wsClient.moveCard({
-            cardId: activeCardId() || -4,
+            cardId: activeCardId(),
             state: deck()[index].cardState,
             x: pos.x,
             y: pos.y,
