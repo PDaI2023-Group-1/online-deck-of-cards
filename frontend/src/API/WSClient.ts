@@ -23,7 +23,7 @@ type FlipCardData = {
     isfaceUp: boolean;
 };
 
-export type WSData = MoveCardData | FlipCardData;
+type WSData = MoveCardData | FlipCardData;
 
 type MessageCallback = (data: WSData) => void;
 
