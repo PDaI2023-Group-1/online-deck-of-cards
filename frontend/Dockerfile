@@ -1,15 +1,16 @@
 #frontti stage
-FROM node:18
+FROM node:18-alpine AS build-stage
 
 WORKDIR /
-COPY ./package.json ./
-RUN npm install
 COPY ./ ./
+RUN npm ci
+
 
 #buildataan frontti
 RUN npm run build
 
-CMD ["npm", "start"]
+FROM nginx
+
 
 #TODO: tarkista GCP portitus
 EXPOSE 3000
