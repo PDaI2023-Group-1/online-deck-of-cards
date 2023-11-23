@@ -5,7 +5,6 @@ WORKDIR /
 COPY ./ ./
 RUN npm ci
 
-
 #buildataan frontti
 RUN npm run build
 
