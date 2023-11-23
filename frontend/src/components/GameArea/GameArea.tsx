@@ -3,8 +3,9 @@ import Card, { ICardProps, ECardState, ECardSuit } from './Card/Card';
 import Hand from './Hand/Hand';
 import './GameAreaStyles.css';
 import WSClient from '../../API/WSClient';
+import DeckStateManager from './DeckStateManager';
 
-import { addDeck, generateDeckArray, shuffleDeck } from './ga-utils';
+import { addDeck, shuffleDeck } from './ga-utils';
 
 export interface IPlayer {
     id: string;
@@ -15,7 +16,7 @@ export interface IPlayer {
 const defaultCardProps: ICardProps = {
     id: 0,
     pos: { x: 250, y: 150 },
-    isFaceUp: true,
+    isFaceUp: false,
     order: 0,
     cardState: ECardState.onTable,
     playerId: '',
@@ -35,7 +36,13 @@ const GameArea: Component = () => {
     const [startPos, setStartPos] = createSignal({ x: 0, y: 0 });
     const [players, setPlayers] = createSignal<Array<IPlayer>>([playerProps]);
 
+    const deckState = new DeckStateManager(1, defaultCardProps);
+
     const wsClient = new WSClient('local');
+
+    onMount(() => {
+        setDeck(deckState.getDeck());
+    });
 
     // eslint-disable-next-line solid/reactivity
     wsClient.onMessage((data) => {
@@ -55,12 +62,6 @@ const GameArea: Component = () => {
         }
     });
 
-    onMount(() => {
-        setDeck(shuffleDeck(generateDeckArray(defaultCardProps)));
-    });
-
-    console.clear();
-
     const handleMouseDown = (event: MouseEvent, target: Element) => {
         if (!target.classList.contains('card-container')) return;
         setStartPos({ x: event.x, y: event.y });
@@ -69,13 +70,9 @@ const GameArea: Component = () => {
 
     const handleMouseMove = (event: MouseEvent) => {
         const pos = { x: event.x, y: event.y };
-        const index = deck().findIndex((el) => el.id === activeCardId());
-        if (typeof index !== 'number' || index === -1) return;
 
-        const newCard = { ...deck()[index], pos };
-
-        setDeck(deck().map((e, i) => (i === index ? newCard : e)));
-        if (typeof activeCardId() === 'undefined') return;
+        const { newDeck, index } = deckState.updateCardPos(activeCardId(), pos);
+        setDeck(newDeck);
 
         wsClient.moveCard({
             cardId: activeCardId(),

@@ -51,7 +51,7 @@ class WSClient {
 
     moveCard(cardPos: ICardPosition) {
         if (!this.serverIsReady) return;
-        if (cardPos.cardId === undefined) return;
+        if (cardPos.cardId === undefined || cardPos.cardId < 0) return;
         const message: MoveCardData = {
             event: 'move-card',
             cardId: cardPos.cardId,
