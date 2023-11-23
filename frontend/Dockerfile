@@ -10,9 +10,13 @@ RUN npm ci
 RUN npm run build
 
 FROM nginx
+WORKDIR /
+COPY --from=build-stage ./dist /usr/share/nginx/html/
+COPY ./nginx.conf /etc/nginx
 
+CMD ["nginx", "-g", "daemon off;"]
 
 #TODO: tarkista GCP portitus
-EXPOSE 3000
+EXPOSE 80
 
-#docker run -dp 127.0.0.1:3000:3000 <image_id>
+#docker run -dp 127.0.0.1:80:80 <image_id>
