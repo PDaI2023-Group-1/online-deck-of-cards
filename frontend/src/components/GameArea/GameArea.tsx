@@ -4,12 +4,21 @@ import Hand from './Hand/Hand';
 import './GameAreaStyles.css';
 import WSClient from '../../API/WSClient';
 import DeckStateManager from './DeckStateManager';
+import { jwtDecode } from 'jwt-decode';
 
 export interface IPlayer {
     id: string;
     pos: string;
     cards: Array<ICardProps>;
+    username: string;
 }
+
+type Token = {
+    id: number;
+    username: string;
+    roomCode?: string;
+    isOwner?: boolean;
+};
 
 const defaultCardProps: ICardProps = {
     id: 0,
@@ -22,8 +31,13 @@ const defaultCardProps: ICardProps = {
     suit: ECardSuit.ace,
 };
 
+const decodedToken = jwtDecode(
+    localStorage.getItem('token') as string,
+) as Token;
+
 const playerProps: IPlayer = {
-    id: 'local' + `${Math.random()}`,
+    id: decodedToken.id.toString(),
+    username: decodedToken.username,
     pos: 'right',
     cards: [],
 };
@@ -224,6 +238,8 @@ const GameArea: Component<GameAreaProps> = (props) => {
                         >
                             <div draggable={false}>
                                 <p draggable={false}>
+                                    Username: {player.username}
+                                    <br />
                                     Player id: {player.id}
                                     <br />
                                     Cards in hand:
