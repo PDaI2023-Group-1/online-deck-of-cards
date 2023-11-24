@@ -60,10 +60,17 @@ type Room = {
     players: array<WebSocket>;
 };
 
+type RoomDataChanged = {
+    event: 'room-data-changed';
+    valueType: 'deck-count' | 'cards-per-player' | 'joker-count';
+    value: number;
+};
+
 declare type WSData =
     | MoveCardData
     | FlipCardData
     | JoinRoom
     | CreateRoom
     | PlayerChanged
-    | Authorize;
+    | Authorize
+    | RoomDataChanged;

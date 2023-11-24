@@ -26,6 +26,7 @@ wss.on('connection', (ws: WebSocket) => {
                     event: 'unauthorized',
                 })
             );
+            ws.close();
             return;
         }
 
@@ -175,6 +176,41 @@ wss.on('connection', (ws: WebSocket) => {
                 if (client.readyState === WebSocket.OPEN) {
                     client.send(JSON.stringify(message));
                 }
+            });
+        }
+
+        if (message.event === 'room-data-changed') {
+            const playerId = playerIdsByWebsockets.get(ws);
+            if (playerId === undefined) {
+                console.log('player id undefined');
+                return;
+            }
+
+            const player = playerData.get(playerId);
+
+            if (player === undefined) {
+                console.log('player data undefined');
+                return;
+            }
+
+            const room = rooms.get(player.roomCode);
+            if (room === undefined) {
+                console.log('room not found when joining');
+                return;
+            }
+
+            const players = room.players.filter(
+                (socket: WebSocket) => socket !== ws
+            );
+
+            players.forEach((socket: WebSocket) => {
+                socket.send(
+                    JSON.stringify({
+                        event: 'room-data-changed',
+                        valueType: message.valueType,
+                        value: message.value,
+                    })
+                );
             });
         }
     });

@@ -5,6 +5,23 @@ import { writeClipboard } from '@solid-primitives/clipboard';
 import WSClient from '../../API/WSClient';
 import { jwtDecode } from 'jwt-decode';
 
+type RoomInfo = {
+    roomInfo: {
+        maxPlayers: number;
+        pinCode: string | null;
+        players: number[];
+        ownerId: number;
+        roomCode: string;
+    };
+};
+
+type Token = {
+    id: number;
+    username: string;
+    roomCode?: string;
+    isOwner?: boolean;
+};
+
 const WaitingRoom: Component = () => {
     const navigate = useNavigate();
     const [players, setPlayers] = createSignal<string[]>([]);
@@ -16,22 +33,7 @@ const WaitingRoom: Component = () => {
     const [jokerCount, setJokerCount] = createSignal(0);
     const [isOwner, setIsOwner] = createSignal(false);
 
-    type RoomInfo = {
-        roomInfo: {
-            maxPlayers: number;
-            pinCode: string | null;
-            players: number[];
-            ownerId: number;
-            roomCode: string;
-        };
-    };
-
-    type Token = {
-        id: number;
-        username: string;
-        roomCode?: string;
-        isOwner?: boolean;
-    };
+    const wsClient = new WSClient('');
 
     onMount(async () => {
         const token = localStorage.getItem('token');
@@ -60,40 +62,47 @@ const WaitingRoom: Component = () => {
             setRoomCode(data.roomInfo.roomCode);
             setIsOwner(decodedToken.isOwner!);
 
-            const wsClient = new WSClient('');
-
+            wsClient.connect('localhost', 8080);
             wsClient.onOpen(() => {
-                console.log('WebSocket connection is open.');
                 wsClient.authorize(token);
             });
 
+            // eslint-disable-next-line solid/reactivity
             wsClient.onMessage((data) => {
                 console.log(data);
 
                 if (data.event === 'authorized') {
                     if (!decodedToken.isOwner) {
-                        console.log('send join room');
                         wsClient.joinRoom();
                     } else {
-                        console.log('send create room');
                         wsClient.createRoom();
                     }
                 }
 
                 if (data.event === 'player-joined') {
-                    console.log('joined');
                     const usernames = [...players(), data.username];
                     setPlayers(usernames);
                     setCurrentPlayerCount(usernames.length);
                 }
 
                 if (data.event === 'player-left') {
-                    console.log('left');
                     const newUsernames = players().filter(
                         (player) => player !== data.username,
                     );
                     setPlayers(newUsernames);
                     setCurrentPlayerCount(newUsernames.length);
+                }
+
+                if (data.event === 'room-data-changed') {
+                    if (data.valueType === 'deck-count') {
+                        setDeckCount(data.value);
+                    }
+                    if (data.valueType === 'cards-per-player') {
+                        setCardsPerPlayer(data.value);
+                    }
+                    if (data.valueType === 'joker-count') {
+                        setJokerCount(data.value);
+                    }
                 }
             });
         } catch (error) {
@@ -129,6 +138,19 @@ const WaitingRoom: Component = () => {
         }
     };
 
+    const handleDeckCount = (val: number) => {
+        setDeckCount(val);
+        wsClient.changeRoomData('deck-count', val);
+    };
+    const handleCardsPerPlayer = (val: number) => {
+        setCardsPerPlayer(val);
+        wsClient.changeRoomData('cards-per-player', val);
+    };
+    const handleJokerCount = (val: number) => {
+        setJokerCount(val);
+        wsClient.changeRoomData('joker-count', val);
+    };
+
     return (
         <div class="flex flex-col justify-center items-center h-screen">
             <div class="flex">
@@ -147,7 +169,7 @@ const WaitingRoom: Component = () => {
                         max="2"
                         value={deckCount()}
                         onInput={(e) =>
-                            setDeckCount(parseInt(e.currentTarget.value))
+                            handleDeckCount(parseInt(e.currentTarget.value))
                         }
                         disabled={!isOwner()}
                     />
@@ -167,7 +189,9 @@ const WaitingRoom: Component = () => {
                         }
                         value={cardsPerPlayer()}
                         onInput={(e) =>
-                            setCardsPerPlayer(parseInt(e.currentTarget.value))
+                            handleCardsPerPlayer(
+                                parseInt(e.currentTarget.value),
+                            )
                         }
                         disabled={!isOwner()}
                     />
@@ -185,7 +209,7 @@ const WaitingRoom: Component = () => {
                         max={deckCount() * 4}
                         value={jokerCount()}
                         onInput={(e) =>
-                            setJokerCount(parseInt(e.currentTarget.value))
+                            handleJokerCount(parseInt(e.currentTarget.value))
                         }
                         disabled={!isOwner()}
                     />

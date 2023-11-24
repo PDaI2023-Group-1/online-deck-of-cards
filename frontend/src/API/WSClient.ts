@@ -39,23 +39,28 @@ type Authorized = {
     event: 'authorized';
 };
 
+type RoomDataChanged = {
+    event: 'room-data-changed';
+    valueType: 'deck-count' | 'cards-per-player' | 'joker-count';
+    value: number;
+};
+
 type WSData =
     | MoveCardData
     | FlipCardData
     | PlayerChanged
     | JoinRoom
-    | Authorized;
+    | Authorized
+    | RoomDataChanged;
 
 type MessageCallback = (data: WSData) => void;
 
 class WSClient {
-    private client: WebSocket;
+    private client?: WebSocket;
     public playerId: string;
 
     constructor(id: string) {
-        this.client = new WebSocket('ws://localhost:8080');
         this.playerId = id;
-        this.client.onerror = (err) => this.onError(err);
     }
 
     private onError(err: Event) {
@@ -63,21 +68,36 @@ class WSClient {
     }
 
     private serverIsReady(): boolean {
+        if (!this.client) {
+            return false;
+        }
         return this.client.readyState === WebSocket.OPEN;
     }
 
+    connect(hostname: string, port: number, isSecure: boolean = false) {
+        this.client = new WebSocket(
+            `${isSecure ? 'wss' : 'ws'}://${hostname}:${port}`,
+        );
+        this.client.onerror = (err) => this.onError(err);
+    }
+
     onMessage(cb: MessageCallback) {
+        if (!this.client) {
+            return;
+        }
         this.client.onmessage = (message) => cb(JSON.parse(message.data));
     }
 
     onOpen(cb: () => void) {
+        if (!this.client) {
+            return;
+        }
         this.client.onopen = () => cb();
     }
 
     moveCard(cardPos: ICardPosition) {
         if (!this.serverIsReady()) return;
-        if (!this.serverIsReady) return;
-        this.client.send(
+        this.client!.send(
             JSON.stringify({
                 event: 'move-card',
                 playerId: this.playerId,
@@ -98,12 +118,12 @@ class WSClient {
             playerId: this.playerId,
         };
 
-        this.client.send(JSON.stringify(message));
+        this.client!.send(JSON.stringify(message));
     }
 
     joinRoom() {
         if (!this.serverIsReady) return;
-        this.client.send(
+        this.client!.send(
             JSON.stringify({
                 event: 'join-room',
             }),
@@ -112,7 +132,7 @@ class WSClient {
 
     createRoom() {
         if (!this.serverIsReady) return;
-        this.client.send(
+        this.client!.send(
             JSON.stringify({
                 event: 'create-room',
             }),
@@ -121,10 +141,24 @@ class WSClient {
 
     authorize(token: string) {
         if (!this.serverIsReady) return;
-        this.client.send(
+        this.client!.send(
             JSON.stringify({
                 event: 'authorize',
                 token: token,
+            }),
+        );
+    }
+
+    changeRoomData(
+        valueType: 'deck-count' | 'cards-per-player' | 'joker-count',
+        value: number,
+    ) {
+        if (!this.serverIsReady) return;
+        this.client!.send(
+            JSON.stringify({
+                event: 'room-data-changed',
+                valueType: valueType,
+                value: value,
             }),
         );
     }
