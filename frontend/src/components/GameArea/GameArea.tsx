@@ -4,7 +4,6 @@ import Hand from './Hand/Hand';
 import './GameAreaStyles.css';
 import WSClient from '../../API/WSClient';
 import DeckStateManager from './DeckStateManager';
-import { jwtDecode } from 'jwt-decode';
 
 export interface IPlayer {
     id: string;
@@ -12,13 +11,6 @@ export interface IPlayer {
     cards: Array<ICardProps>;
     username: string;
 }
-
-type Token = {
-    id: number;
-    username: string;
-    roomCode?: string;
-    isOwner?: boolean;
-};
 
 const defaultCardProps: ICardProps = {
     id: 0,
@@ -31,17 +23,6 @@ const defaultCardProps: ICardProps = {
     suit: ECardSuit.ace,
 };
 
-const decodedToken = jwtDecode(
-    localStorage.getItem('token') as string,
-) as Token;
-
-const playerProps: IPlayer = {
-    id: decodedToken.id.toString(),
-    username: decodedToken.username,
-    pos: 'right',
-    cards: [],
-};
-
 type Settings = {
     deckCount: number;
     jokerCount: number;
@@ -51,13 +32,15 @@ type Settings = {
 type GameAreaProps = {
     wsClient: WSClient;
     settings: Settings;
+    players: Array<IPlayer>;
 };
 
 const GameArea: Component<GameAreaProps> = (props) => {
     const [deck, setDeck] = createSignal<Array<ICardProps>>([]);
     const [activeCardId, setActiveCardId] = createSignal<number>();
     const [startPos, setStartPos] = createSignal({ x: 0, y: 0 });
-    const [players, setPlayers] = createSignal<Array<IPlayer>>([playerProps]);
+    // eslint-disable-next-line solid/reactivity
+    const [players, setPlayers] = createSignal<Array<IPlayer>>(props.players);
 
     // these need to be changed to be valid values coming from props instead
     // of just some stuff I was setting for dev testing purposes
@@ -140,7 +123,7 @@ const GameArea: Component<GameAreaProps> = (props) => {
             return;
 
         //cant be out here giving cards to strangers
-        if (!target.classList.contains(playerProps.id)) return;
+        if (!target.classList.contains(players()[0].id)) return;
 
         const index = deck().findIndex((el) => el.id === activeCardId());
 

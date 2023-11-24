@@ -3,7 +3,7 @@ import axios from 'axios';
 import { writeClipboard } from '@solid-primitives/clipboard';
 import WSClient from '../../API/WSClient';
 import { jwtDecode } from 'jwt-decode';
-import GameArea from '../GameArea/GameArea';
+import GameArea, { IPlayer } from '../GameArea/GameArea';
 import { useNavigate } from '@solidjs/router';
 
 type RoomInfo = {
@@ -24,7 +24,7 @@ type Token = {
 };
 
 const WaitingRoom: Component = () => {
-    const [players, setPlayers] = createSignal<string[]>([]);
+    const [players, setPlayers] = createSignal<IPlayer[]>([]);
     const [currentPlayerCount, setCurrentPlayerCount] = createSignal(0);
     const [maxPlayerCount, setMaxPlayerCount] = createSignal(4);
     const [roomCode, setRoomCode] = createSignal('');
@@ -60,7 +60,14 @@ const WaitingRoom: Component = () => {
 
             const decodedToken = jwtDecode<Token>(token);
 
-            setPlayers([decodedToken.username]);
+            const p: IPlayer = {
+                username: decodedToken.username,
+                id: decodedToken.id.toString(),
+                pos: 'right',
+                cards: [],
+            };
+
+            setPlayers([p]);
             setCurrentPlayerCount(players().length);
             setMaxPlayerCount(data.roomInfo.maxPlayers);
             setRoomCode(data.roomInfo.roomCode);
@@ -92,14 +99,20 @@ const WaitingRoom: Component = () => {
                 }
 
                 if (data.event === 'player-joined') {
-                    const usernames = [...players(), data.username];
-                    setPlayers(usernames);
-                    setCurrentPlayerCount(usernames.length);
+                    const p: IPlayer = {
+                        username: data.username,
+                        id: data.id.toString(),
+                        pos: 'right',
+                        cards: [],
+                    };
+                    const newPlayers = [...players(), p];
+                    setPlayers(newPlayers);
+                    setCurrentPlayerCount(newPlayers.length);
                 }
 
                 if (data.event === 'player-left') {
                     const newUsernames = players().filter(
-                        (player) => player !== data.username,
+                        (player) => player.id !== data.id.toString(),
                     );
                     setPlayers(newUsernames);
                     setCurrentPlayerCount(newUsernames.length);
@@ -147,7 +160,7 @@ const WaitingRoom: Component = () => {
         return (
             <For each={players()}>
                 {(player) => {
-                    return <li>{player}</li>;
+                    return <li>{player.username}</li>;
                 }}
             </For>
         );
@@ -183,6 +196,7 @@ const WaitingRoom: Component = () => {
                         jokerCount: jokerCount(),
                         cardsPerPlayer: cardsPerPlayer(),
                     }}
+                    players={players()}
                 />
             ) : (
                 <div class="flex flex-col justify-center items-center h-screen">

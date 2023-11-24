@@ -149,6 +149,7 @@ wss.on('connection', (ws: WebSocket) => {
                     JSON.stringify({
                         event: 'player-joined',
                         username: player.username,
+                        id: player.id,
                     })
                 );
             });
@@ -160,6 +161,7 @@ wss.on('connection', (ws: WebSocket) => {
                     JSON.stringify({
                         event: 'player-joined',
                         username: player.username,
+                        id: player.id,
                     })
                 );
             });
@@ -289,6 +291,7 @@ wss.on('connection', (ws: WebSocket) => {
                 JSON.stringify({
                     event: 'player-left',
                     username: player.username,
+                    id: player.id,
                 })
             );
         });

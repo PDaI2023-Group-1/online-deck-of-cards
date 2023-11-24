@@ -26,13 +26,13 @@ type FlipCardData = {
 type PlayerChanged = {
     event: 'player-joined' | 'player-left';
     username: string;
-    playerId: number;
+    id: number;
 };
 
 type JoinRoom = {
     event: 'join-room';
     token: string;
-    playerId: number;
+    id: number;
 };
 
 type JoinedRoom = {
