@@ -176,7 +176,14 @@ const WaitingRoom: Component = () => {
     return (
         <>
             {gameHasStarted() ? (
-                <GameArea wsClient={wsClient!} />
+                <GameArea
+                    wsClient={wsClient!}
+                    settings={{
+                        deckCount: deckCount(),
+                        jokerCount: jokerCount(),
+                        cardsPerPlayer: cardsPerPlayer(),
+                    }}
+                />
             ) : (
                 <div class="flex flex-col justify-center items-center h-screen">
                     <div class="flex">

@@ -28,8 +28,15 @@ const playerProps: IPlayer = {
     cards: [],
 };
 
+type Settings = {
+    deckCount: number;
+    jokerCount: number;
+    cardsPerPlayer: number;
+};
+
 type GameAreaProps = {
     wsClient: WSClient;
+    settings: Settings;
 };
 
 const GameArea: Component<GameAreaProps> = (props) => {
@@ -47,6 +54,7 @@ const GameArea: Component<GameAreaProps> = (props) => {
     onMount(() => {
         console.clear(); //nice to get rid of unneccesary/old logs
         setDeck(deckState.getDeck());
+        console.log(props.settings);
     });
 
     /* disabling because player 0 represents local player and thus will always exist
