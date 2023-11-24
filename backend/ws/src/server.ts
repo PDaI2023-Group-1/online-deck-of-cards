@@ -5,9 +5,16 @@ import { verify } from './helpers/token';
 
 const wss = new WebSocketServer({ port: 8080 });
 
-const playerIdsByWebsockets = new Map<WebSocket, number>();
-const playerData = new Map<number, Token>();
-const rooms = new Map<string, Room>();
+import {
+    hasSocket,
+    setSocket,
+    setPlayerData,
+    getPlayerDataBySocket,
+    removePlayerData,
+    removePlayerIdBySocket,
+} from './helpers/user';
+
+import { getRoomByCode, setRoomByCode } from './helpers/room';
 
 if (process.env.SECRET_KEY === undefined || process.env.SECRET_KEY === null) {
     console.error('SECRET_KEY is not defined');
@@ -20,7 +27,7 @@ wss.on('connection', (ws: WebSocket) => {
     ws.on('message', (data: string) => {
         const message: WSData = JSON.parse(data);
 
-        if (!playerIdsByWebsockets.has(ws) && message.event !== 'authorize') {
+        if (!hasSocket(ws) && message.event !== 'authorize') {
             ws.send(
                 JSON.stringify({
                     event: 'unauthorized',
@@ -33,8 +40,8 @@ wss.on('connection', (ws: WebSocket) => {
         if (message.event === 'authorize') {
             verify(message.token)
                 .then((decoded) => {
-                    playerIdsByWebsockets.set(ws, decoded.id);
-                    playerData.set(decoded.id, decoded);
+                    setSocket(ws, decoded.id);
+                    setPlayerData(decoded.id, decoded);
 
                     ws.send(
                         JSON.stringify({
@@ -53,22 +60,14 @@ wss.on('connection', (ws: WebSocket) => {
         }
 
         if (message.event === 'move-card') {
-            const playerId = playerIdsByWebsockets.get(ws);
-            if (playerId === undefined) {
-                console.log('player id undefined');
-                return;
-            }
-
-            const player = playerData.get(playerId);
+            const player = getPlayerDataBySocket(ws);
 
             if (player === undefined) {
-                console.log('player data undefined');
                 return;
             }
 
-            const room = rooms.get(player.roomCode);
+            const room = getRoomByCode(player.roomCode);
             if (room === undefined) {
-                console.log('room not found');
                 return;
             }
 
@@ -82,21 +81,13 @@ wss.on('connection', (ws: WebSocket) => {
         }
 
         if (message.event === 'create-room') {
-            const playerId = playerIdsByWebsockets.get(ws);
-            if (playerId === undefined) {
-                console.log('player id undefined');
-                return;
-            }
-
-            const player = playerData.get(playerId);
+            const player = getPlayerDataBySocket(ws);
 
             if (player === undefined) {
-                console.log('player data undefined');
                 return;
             }
 
             if (!player.isOwner) {
-                console.log('user cant create room if user is not owner');
                 return;
             }
 
@@ -111,26 +102,19 @@ wss.on('connection', (ws: WebSocket) => {
                 isGameStarted: false,
             };
 
-            rooms.set(player.roomCode, room);
-            console.log('room created');
+            setRoomByCode(player.roomCode, room);
             ws.send(JSON.stringify({ event: 'room-created' }));
         }
 
         if (message.event === 'join-room') {
-            const playerId = playerIdsByWebsockets.get(ws);
-            if (playerId === undefined) {
-                console.log('player id undefined');
-                return;
-            }
-
-            const player = playerData.get(playerId);
+            const player = getPlayerDataBySocket(ws);
 
             if (player === undefined) {
                 console.log('player data undefined');
                 return;
             }
 
-            const room = rooms.get(player.roomCode);
+            const room = getRoomByCode(player.roomCode);
             if (room === undefined) {
                 console.log('room not found when joining');
                 return;
@@ -155,15 +139,8 @@ wss.on('connection', (ws: WebSocket) => {
             // loop over current players and send player-joined to self
 
             room.players.forEach((socket: WebSocket) => {
-                const playerId = playerIdsByWebsockets.get(socket);
-                if (playerId === undefined) {
-                    console.log('player id undefined');
-                    return;
-                }
-                const player = playerData.get(playerId);
-
+                const player = getPlayerDataBySocket(socket);
                 if (player === undefined) {
-                    console.log('player data undefined');
                     return;
                 }
 
@@ -177,14 +154,7 @@ wss.on('connection', (ws: WebSocket) => {
 
             // send player-joined event to others that are in the room
 
-            const newPlayerSockets = [...room.players, ws];
-            room.players = newPlayerSockets;
-            rooms.set(player.roomCode, room);
-
-            newPlayerSockets.forEach((socket) => {
-                if (socket === ws) {
-                    return;
-                }
+            room.players.forEach((socket: WebSocket) => {
                 socket.send(
                     JSON.stringify({
                         event: 'player-joined',
@@ -192,6 +162,10 @@ wss.on('connection', (ws: WebSocket) => {
                     })
                 );
             });
+
+            const newPlayerSockets = [...room.players, ws];
+            room.players = newPlayerSockets;
+            setRoomByCode(player.roomCode, room);
 
             if (room.isGameStarted) {
                 ws.send(
@@ -203,22 +177,13 @@ wss.on('connection', (ws: WebSocket) => {
         }
 
         if (message.event === 'flip-card') {
-            const playerId = playerIdsByWebsockets.get(ws);
-            if (playerId === undefined) {
-                console.log('player id undefined');
-                return;
-            }
-
-            const player = playerData.get(playerId);
-
+            const player = getPlayerDataBySocket(ws);
             if (player === undefined) {
-                console.log('player data undefined');
                 return;
             }
 
-            const room = rooms.get(player.roomCode);
+            const room = getRoomByCode(player.roomCode);
             if (room === undefined) {
-                console.log('room not found');
                 return;
             }
 
@@ -232,22 +197,13 @@ wss.on('connection', (ws: WebSocket) => {
         }
 
         if (message.event === 'room-data-changed') {
-            const playerId = playerIdsByWebsockets.get(ws);
-            if (playerId === undefined) {
-                console.log('player id undefined');
-                return;
-            }
-
-            const player = playerData.get(playerId);
-
+            const player = getPlayerDataBySocket(ws);
             if (player === undefined) {
-                console.log('player data undefined');
                 return;
             }
 
-            const room = rooms.get(player.roomCode);
+            const room = getRoomByCode(player.roomCode);
             if (room === undefined) {
-                console.log('room not found');
                 return;
             }
 
@@ -277,27 +233,21 @@ wss.on('connection', (ws: WebSocket) => {
         }
 
         if (message.event === 'start-game') {
-            const playerId = playerIdsByWebsockets.get(ws);
-            if (playerId === undefined) {
-                console.log('player id undefined');
-                return;
-            }
-
-            const player = playerData.get(playerId);
+            const player = getPlayerDataBySocket(ws);
 
             if (player === undefined) {
                 console.log('player data undefined');
                 return;
             }
 
-            const room = rooms.get(player.roomCode);
+            const room = getRoomByCode(player.roomCode);
             if (room === undefined) {
                 console.log('room not found');
                 return;
             }
 
             room.isGameStarted = true;
-            rooms.set(player.roomCode, room);
+            setRoomByCode(player.roomCode, room);
 
             const players = room.players.filter(
                 (socket: WebSocket) => socket !== ws
@@ -315,22 +265,14 @@ wss.on('connection', (ws: WebSocket) => {
 
     ws.onclose = () => {
         console.log('A client disconnected');
-        const playerId = playerIdsByWebsockets.get(ws);
-        if (playerId === undefined) {
-            console.log('player id undefined');
-            return;
-        }
-
-        const player = playerData.get(playerId);
+        const player = getPlayerDataBySocket(ws);
 
         if (player === undefined) {
-            console.log('player data undefined');
             return;
         }
 
-        const room = rooms.get(player.roomCode);
+        const room = getRoomByCode(player.roomCode);
         if (room === undefined) {
-            console.log('room not found when joining');
             return;
         }
 
@@ -339,7 +281,7 @@ wss.on('connection', (ws: WebSocket) => {
         );
 
         room.players = players;
-        rooms.set(player.roomCode, room);
+        setRoomByCode(player.roomCode, room);
 
         players.forEach((socket: WebSocket) => {
             socket.send(
@@ -350,8 +292,8 @@ wss.on('connection', (ws: WebSocket) => {
             );
         });
 
-        playerIdsByWebsockets.delete(ws);
-        playerData.delete(playerId);
+        removePlayerIdBySocket(ws);
+        removePlayerData(player.id);
     };
 
     ws.on('error', (error) => console.error('WebSocket error:', error));
