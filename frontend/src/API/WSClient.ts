@@ -19,7 +19,7 @@ type MoveCardData = {
 type FlipCardData = {
     event: 'flip-card';
     playerId: string;
-    cardId: string;
+    cardId: number;
     isfaceUp: boolean;
 };
 
@@ -63,14 +63,19 @@ class WSClient {
         this.client.send(JSON.stringify(message));
     }
 
-    flipCard(cardId: string) {
+    flipCard(cardId: number | undefined, isfaceUp: boolean) {
         if (!this.serverIsReady) return;
-        this.client.send(
-            JSON.stringify({
-                event: 'flip-card',
-                payload: { cardId: cardId, data: this.playerId },
-            }),
-        );
+        if (typeof cardId === 'undefined') return;
+        if (cardId < 0) return;
+
+        const message: FlipCardData = {
+            cardId,
+            event: 'flip-card',
+            isfaceUp,
+            playerId: this.playerId,
+        };
+
+        this.client.send(JSON.stringify(message));
     }
 }
 

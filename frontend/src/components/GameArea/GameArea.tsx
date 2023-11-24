@@ -25,7 +25,7 @@ const defaultCardProps: ICardProps = {
 };
 
 const playerProps: IPlayer = {
-    id: 'local',
+    id: 'local' + `${Math.random()}`,
     pos: 'right',
     cards: [],
 };
@@ -38,7 +38,7 @@ const GameArea: Component = () => {
 
     const deckState = new DeckStateManager(1, defaultCardProps);
 
-    const wsClient = new WSClient('local');
+    const wsClient = new WSClient(playerProps.id);
 
     onMount(() => {
         setDeck(deckState.getDeck());
@@ -47,18 +47,20 @@ const GameArea: Component = () => {
     // eslint-disable-next-line solid/reactivity
     wsClient.onMessage((data) => {
         if (data.event === 'move-card') {
-            console.log(data);
-            // if (data.playerId === players()[0].id) return; commented this line for now as all players have id local
-            const index = deck().findIndex((el) => el.id === data.cardId);
-            if (typeof index !== 'number' || index === -1) return;
+            if (data.playerId === players()[0].id) return;
             const pos = {
                 x: data.x,
                 y: data.y,
             };
+            const { newDeck } = deckState.updateCardPos(data.cardId, pos);
 
-            const newCard = { ...deck()[index], pos };
+            setDeck(newDeck);
+        }
 
-            setDeck(deck().map((e, i) => (i === index ? newCard : e)));
+        if (data.event === 'flip-card') {
+            if (data.playerId === players()[0].id) return;
+            const { newDeck } = deckState.flipCard(data.cardId);
+            setDeck(newDeck);
         }
     });
 
@@ -69,6 +71,8 @@ const GameArea: Component = () => {
     };
 
     const handleMouseMove = (event: MouseEvent) => {
+        if (typeof activeCardId() === 'undefined') return;
+
         const pos = { x: event.x, y: event.y };
 
         const { newDeck, index } = deckState.updateCardPos(activeCardId(), pos);
@@ -87,22 +91,18 @@ const GameArea: Component = () => {
         if (typeof activeCardId() === undefined || Number.isNaN(activeCardId()))
             return;
 
-        const index = deck().findIndex((el) => el.id === activeCardId());
+        const currentPos = { x: event.x, y: event.y };
 
-        if (typeof index !== 'number' && index < 0) return;
+        const moved = JSON.stringify(startPos()) !== JSON.stringify(currentPos);
 
-        const moved =
-            startPos().x - event.x !== 0 && startPos().y - event.y !== 0;
+        if (!moved) {
+            const { newDeck, isFaceUp } = deckState.flipCard(activeCardId());
 
-        const pos = { x: event.x, y: event.y };
+            if (typeof isFaceUp === 'undefined') return;
+            setDeck(newDeck);
+            wsClient.flipCard(activeCardId(), isFaceUp);
+        }
 
-        const newCard: ICardProps = {
-            ...deck()[index],
-            pos: moved ? pos : deck()[index].pos,
-            isFaceUp: moved ? deck()[index].isFaceUp : !deck()[index].isFaceUp,
-        };
-
-        setDeck(deck().map((e, i) => (i === index ? newCard : e)));
         setActiveCardId(undefined);
     };
 
@@ -140,10 +140,7 @@ const GameArea: Component = () => {
     };
 
     const handleShuffle = () => {
-        console.table(deck());
-
         const newDeck = shuffleDeck(deck());
-        console.table(newDeck);
         setDeck(newDeck);
     };
 

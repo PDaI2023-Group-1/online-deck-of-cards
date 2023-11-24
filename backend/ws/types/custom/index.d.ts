@@ -24,7 +24,7 @@ type MoveCardData = {
 type FlipCardData = {
     event: 'flip-card';
     playerId: string;
-    cardId: string;
+    cardId: number;
     isfaceUp: boolean;
 };
 

@@ -14,7 +14,7 @@ class DeckStateManager {
         this.decks = utils.shuffleDeck(utils.generateDeckArray(defaultCard));
     }
 
-    getDeck() {
+    getDeck(): ICardProps[] {
         return this.decks;
     }
 
@@ -25,17 +25,42 @@ class DeckStateManager {
         if (typeof cardId === 'undefined')
             return { newDeck: this.decks, index: -1 };
 
-        const index = this.decks.findIndex((card) => card.id === cardId);
+        const index = this.findCardIndex(cardId);
         const newCard: ICardProps = {
             ...this.decks[index],
             pos,
         };
 
-        this.decks = this.decks.map((card, i) =>
-            i === index ? newCard : card,
-        );
+        this.decks = this.setCardAtIndex(newCard, index);
 
         return { newDeck: this.decks, index };
+    }
+
+    flipCard(cardId: number | undefined): {
+        newDeck: ICardProps[];
+        isFaceUp: boolean | undefined;
+    } {
+        if (typeof cardId === 'undefined')
+            return { newDeck: this.decks, isFaceUp: undefined };
+        const index = this.findCardIndex(cardId);
+
+        const newCard: ICardProps = {
+            ...this.decks[index],
+            isFaceUp: !this.decks[index].isFaceUp,
+        };
+
+        this.decks = this.setCardAtIndex(newCard, index);
+        return { newDeck: this.decks, isFaceUp: this.decks[index].isFaceUp };
+    }
+
+    private findCardIndex(cardId: number): number {
+        return this.decks.findIndex((card) => card.id === cardId);
+    }
+
+    private setCardAtIndex(newCard: ICardProps, index: number): ICardProps[] {
+        return (this.decks = this.decks.map((card, i) =>
+            i === index ? newCard : card,
+        ));
     }
 }
 
