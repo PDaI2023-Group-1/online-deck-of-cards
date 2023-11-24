@@ -169,6 +169,14 @@ wss.on('connection', (ws: WebSocket) => {
                 );
             });
         }
+
+        if (message.event === 'flip-card') {
+            wss.clients.forEach((client) => {
+                if (client.readyState === WebSocket.OPEN) {
+                    client.send(JSON.stringify(message));
+                }
+            });
+        }
     });
 
     ws.on('error', (error) => console.error('WebSocket error:', error));
