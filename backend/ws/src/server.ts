@@ -79,11 +79,6 @@ wss.on('connection', (ws: WebSocket) => {
                 return;
             }
 
-            if (rooms.has(player.roomCode)) {
-                console.log('room exists');
-                return;
-            }
-
             const room: Room = {
                 maxPlayers: player.maxPlayers!,
                 players: [ws],
