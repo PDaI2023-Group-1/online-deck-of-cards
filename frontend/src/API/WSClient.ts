@@ -54,6 +54,10 @@ type RoomDataChanged = {
     value: number;
 };
 
+type StartGame = {
+    event: 'game-started';
+};
+
 type WSData =
     | MoveCardData
     | FlipCardData
@@ -61,7 +65,8 @@ type WSData =
     | JoinRoom
     | Authorized
     | RoomDataChanged
-    | JoinedRoom;
+    | JoinedRoom
+    | StartGame;
 
 type MessageCallback = (data: WSData) => void;
 
@@ -169,6 +174,15 @@ class WSClient {
                 event: 'room-data-changed',
                 valueType: valueType,
                 value: value,
+            }),
+        );
+    }
+
+    startGame() {
+        if (!this.serverIsReady) return;
+        this.client!.send(
+            JSON.stringify({
+                event: 'start-game',
             }),
         );
     }

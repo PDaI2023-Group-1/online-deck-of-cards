@@ -53,10 +53,31 @@ wss.on('connection', (ws: WebSocket) => {
         }
 
         if (message.event === 'move-card') {
-            wss.clients.forEach((client) => {
-                if (client.readyState === WebSocket.OPEN) {
-                    client.send(JSON.stringify(message));
-                }
+            const playerId = playerIdsByWebsockets.get(ws);
+            if (playerId === undefined) {
+                console.log('player id undefined');
+                return;
+            }
+
+            const player = playerData.get(playerId);
+
+            if (player === undefined) {
+                console.log('player data undefined');
+                return;
+            }
+
+            const room = rooms.get(player.roomCode);
+            if (room === undefined) {
+                console.log('room not found');
+                return;
+            }
+
+            const players = room.players.filter(
+                (socket: WebSocket) => socket !== ws
+            );
+
+            players.forEach((socket: WebSocket) => {
+                socket.send(JSON.stringify(message));
             });
         }
 
@@ -220,6 +241,39 @@ wss.on('connection', (ws: WebSocket) => {
                         event: 'room-data-changed',
                         valueType: message.valueType,
                         value: message.value,
+                    })
+                );
+            });
+        }
+
+        if (message.event === 'start-game') {
+            const playerId = playerIdsByWebsockets.get(ws);
+            if (playerId === undefined) {
+                console.log('player id undefined');
+                return;
+            }
+
+            const player = playerData.get(playerId);
+
+            if (player === undefined) {
+                console.log('player data undefined');
+                return;
+            }
+
+            const room = rooms.get(player.roomCode);
+            if (room === undefined) {
+                console.log('room not found');
+                return;
+            }
+
+            const players = room.players.filter(
+                (socket: WebSocket) => socket !== ws
+            );
+
+            players.forEach((socket: WebSocket) => {
+                socket.send(
+                    JSON.stringify({
+                        event: 'game-started',
                     })
                 );
             });

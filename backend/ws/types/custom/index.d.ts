@@ -71,6 +71,10 @@ type RoomDataChanged = {
     value: number;
 };
 
+type StartGame = {
+    event: 'start-game';
+};
+
 declare type WSData =
     | MoveCardData
     | FlipCardData
@@ -78,4 +82,5 @@ declare type WSData =
     | CreateRoom
     | PlayerChanged
     | Authorize
-    | RoomDataChanged;
+    | RoomDataChanged
+    | StartGame;

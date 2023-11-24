@@ -28,7 +28,11 @@ const playerProps: IPlayer = {
     cards: [],
 };
 
-const GameArea: Component = () => {
+type GameAreaProps = {
+    wsClient: WSClient;
+};
+
+const GameArea: Component<GameAreaProps> = (props) => {
     const [deck, setDeck] = createSignal<Array<ICardProps>>([]);
     const [activeCardId, setActiveCardId] = createSignal<number>();
     const [startPos, setStartPos] = createSignal({ x: 0, y: 0 });
@@ -37,7 +41,8 @@ const GameArea: Component = () => {
     // these need to be changed to be valid values coming from props instead
     // of just some stuff I was setting for dev testing purposes
     const deckState = new DeckStateManager(1, defaultCardProps);
-    const wsClient = new WSClient(playerProps.id);
+    // eslint-disable-next-line solid/reactivity
+    const wsClient = props.wsClient as WSClient;
 
     onMount(() => {
         console.clear(); //nice to get rid of unneccesary/old logs
