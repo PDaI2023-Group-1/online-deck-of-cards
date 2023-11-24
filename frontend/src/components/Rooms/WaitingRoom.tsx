@@ -1,5 +1,5 @@
 import { Component, createSignal, For, createEffect, onMount } from 'solid-js';
-import axios, { Axios, AxiosError } from 'axios';
+import axios from 'axios';
 import { writeClipboard } from '@solid-primitives/clipboard';
 import WSClient from '../../API/WSClient';
 import { jwtDecode } from 'jwt-decode';
