@@ -9,14 +9,10 @@
         "esModuleInterop": true,
         "jsx": "preserve",
         "jsxImportSource": "solid-js",
-        "typeRoots": ["./src/types", "node_modules/@types"],
+        "typeRoots": ["./types", "node_modules/@types", "vite/client"],
         "noEmit": true,
         "isolatedModules": true
     },
     "exclude": ["node_modules"],
-    "include": [
-        "./src/**/*.ts",
-        "./src/**/*.tsx",
-        "./src/types/APITypes/index.d.ts"
-    ]
+    "include": ["./**/*.ts", "./**/*.tsx", "./types"]
 }

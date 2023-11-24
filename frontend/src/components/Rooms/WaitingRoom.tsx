@@ -2,16 +2,20 @@ import { Component, createSignal, For, createEffect, onMount } from 'solid-js';
 import { useNavigate } from '@solidjs/router';
 import axios from 'axios';
 import { writeClipboard } from '@solid-primitives/clipboard';
+import WSClient from '../../API/WSClient';
+import { jwtDecode } from 'jwt-decode';
+import { PlayerChanged } from '../../../types/custom';
 
 const WaitingRoom: Component = () => {
     const navigate = useNavigate();
-    const [players, setPlayers] = createSignal<number[]>([]);
+    const [players, setPlayers] = createSignal<string[]>([]);
     const [currentPlayerCount, setCurrentPlayerCount] = createSignal(0);
     const [maxPlayerCount, setMaxPlayerCount] = createSignal(4);
     const [roomCode, setRoomCode] = createSignal('');
     const [deckCount, setDeckCount] = createSignal(1);
     const [cardsPerPlayer, setCardsPerPlayer] = createSignal(0);
     const [jokerCount, setJokerCount] = createSignal(0);
+    const [isOwner, setIsOwner] = createSignal(false);
 
     type RoomInfo = {
         roomInfo: {
@@ -23,8 +27,18 @@ const WaitingRoom: Component = () => {
         };
     };
 
+    type Token = {
+        id: number;
+        username: string;
+        roomCode?: string;
+        isOwner?: boolean;
+    };
+
     onMount(async () => {
         const token = localStorage.getItem('token');
+        if (token === null) {
+            return;
+        }
         const config = {
             headers: { Authorization: `Bearer ${token}` },
         };
@@ -39,10 +53,50 @@ const WaitingRoom: Component = () => {
                 return;
             }
 
-            setPlayers(data.roomInfo.players);
-            setCurrentPlayerCount(data.roomInfo.players.length);
+            const decodedToken = jwtDecode<Token>(token);
+
+            setPlayers([decodedToken.username]);
+            setCurrentPlayerCount(players().length);
             setMaxPlayerCount(data.roomInfo.maxPlayers);
             setRoomCode(data.roomInfo.roomCode);
+            setIsOwner(decodedToken.isOwner!);
+
+            const wsClient = new WSClient('');
+
+            wsClient.onOpen(() => {
+                console.log('WebSocket connection is open.');
+                wsClient.authorize(token);
+            });
+
+            wsClient.onMessage((data) => {
+                console.log(data);
+
+                if (data.event === 'authorized') {
+                    if (!decodedToken.isOwner) {
+                        console.log('send join room');
+                        wsClient.joinRoom();
+                    } else {
+                        console.log('send create room');
+                        wsClient.createRoom();
+                    }
+                }
+
+                if (data.event === 'player-joined') {
+                    console.log('joined');
+                    const usernames = [...players(), data.username];
+                    setPlayers(usernames);
+                    setCurrentPlayerCount(usernames.length);
+                }
+
+                if (data.event === 'player-left') {
+                    console.log('left');
+                    const newPlayers = players().filter(
+                        (player) => player !== data.username,
+                    );
+                    setPlayers(newPlayers);
+                    setCurrentPlayerCount(currentPlayerCount() - 1);
+                }
+            });
         } catch (error) {
             console.error(error);
         }
@@ -86,13 +140,18 @@ const WaitingRoom: Component = () => {
                         </label>
                         <input
                             type="range"
-                            class="cursor-pointer"
+                            class={`${
+                                isOwner()
+                                    ? 'cursor-pointer'
+                                    : 'disabled:opacity-75 cursor-not-allowed'
+                            }`}
                             min="1"
                             max="2"
                             value={deckCount()}
                             onInput={(e) =>
                                 setDeckCount(parseInt(e.currentTarget.value))
                             }
+                            disabled={!isOwner()}
                         />
                         <label class="block text-gray-700 text-sm font-bold mb-2">
                             How many cards are dealt to players:{' '}
@@ -100,7 +159,11 @@ const WaitingRoom: Component = () => {
                         </label>
                         <input
                             type="range"
-                            class="cursor-pointer"
+                            class={`${
+                                isOwner()
+                                    ? 'cursor-pointer'
+                                    : 'disabled:opacity-75 cursor-not-allowed'
+                            }`}
                             min="0"
                             max={
                                 (deckCount() * 52 + jokerCount()) /
@@ -112,19 +175,25 @@ const WaitingRoom: Component = () => {
                                     parseInt(e.currentTarget.value),
                                 )
                             }
+                            disabled={!isOwner()}
                         />
                         <label class="block text-gray-700 text-sm font-bold mb-2">
                             How many jokers are in game: {jokerCount()}
                         </label>
                         <input
                             type="range"
-                            class="cursor-pointer"
+                            class={`${
+                                isOwner()
+                                    ? 'cursor-pointer'
+                                    : 'disabled:opacity-75 cursor-not-allowed'
+                            }`}
                             min="0"
                             max={deckCount() * 4}
                             value={jokerCount()}
                             onInput={(e) =>
                                 setJokerCount(parseInt(e.currentTarget.value))
                             }
+                            disabled={!isOwner()}
                         />
                     </form>
                 </div>
@@ -152,8 +221,13 @@ const WaitingRoom: Component = () => {
             </div>
             <div class="mt-6 justify-center">
                 <button
-                    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                    class={`bg-blue-500  ${
+                        isOwner()
+                            ? 'hover:bg-blue-700'
+                            : 'disabled:opacity-75 cursor-not-allowed'
+                    }  text-white font-bold py-2 px-4 rounded`}
                     onClick={() => startGame()}
+                    disabled={!isOwner()}
                 >
                     Start Game
                 </button>

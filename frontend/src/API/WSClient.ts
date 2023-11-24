@@ -23,7 +23,28 @@ type FlipCardData = {
     isfaceUp: boolean;
 };
 
-type WSData = MoveCardData | FlipCardData;
+type PlayerChanged = {
+    event: 'player-joined' | 'player-left';
+    username: string;
+    playerId: number;
+};
+
+type JoinRoom = {
+    event: 'join-room';
+    token: string;
+    playerId: number;
+};
+
+type Authorized = {
+    event: 'authorized';
+};
+
+type WSData =
+    | MoveCardData
+    | FlipCardData
+    | PlayerChanged
+    | JoinRoom
+    | Authorized;
 
 type MessageCallback = (data: WSData) => void;
 
@@ -49,18 +70,20 @@ class WSClient {
         this.client.onmessage = (message) => cb(JSON.parse(message.data));
     }
 
+    onOpen(cb: () => void) {
+        this.client.onopen = () => cb();
+    }
+
     moveCard(cardPos: ICardPosition) {
+        if (!this.serverIsReady()) return;
         if (!this.serverIsReady) return;
-        if (cardPos.cardId === undefined || cardPos.cardId < 0) return;
-        const message: MoveCardData = {
-            event: 'move-card',
-            cardId: cardPos.cardId,
-            playerId: this.playerId,
-            state: cardPos.state,
-            x: cardPos.x,
-            y: cardPos.y,
-        };
-        this.client.send(JSON.stringify(message));
+        this.client.send(
+            JSON.stringify({
+                event: 'move-card',
+                playerId: this.playerId,
+                data: cardPos,
+            }),
+        );
     }
 
     flipCard(cardId: string) {
@@ -69,6 +92,34 @@ class WSClient {
             JSON.stringify({
                 event: 'flip-card',
                 payload: { cardId: cardId, data: this.playerId },
+            }),
+        );
+    }
+
+    joinRoom() {
+        if (!this.serverIsReady) return;
+        this.client.send(
+            JSON.stringify({
+                event: 'join-room',
+            }),
+        );
+    }
+
+    createRoom() {
+        if (!this.serverIsReady) return;
+        this.client.send(
+            JSON.stringify({
+                event: 'create-room',
+            }),
+        );
+    }
+
+    authorize(token: string) {
+        if (!this.serverIsReady) return;
+        this.client.send(
+            JSON.stringify({
+                event: 'authorize',
+                token: token,
             }),
         );
     }

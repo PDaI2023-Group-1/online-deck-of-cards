@@ -40,6 +40,8 @@ const createRoom = (req: Request, res: Response) => {
         id: req.user!.id,
         username: req.user!.username,
         roomCode: roomCode,
+        isOwner: true,
+        maxPlayers: maxPlayers ?? 4,
     };
     const newToken = signToken(user);
 
@@ -86,6 +88,7 @@ const joinRoom = (req: Request, res: Response) => {
         id: req.user!.id,
         username: req.user!.username,
         roomCode: roomCode,
+        isOwner: false,
     };
     const newToken = signToken(user);
 
