@@ -90,11 +90,11 @@ const WaitingRoom: Component = () => {
 
                 if (data.event === 'player-left') {
                     console.log('left');
-                    const newPlayers = players().filter(
+                    const newUsernames = players().filter(
                         (player) => player !== data.username,
                     );
-                    setPlayers(newPlayers);
-                    setCurrentPlayerCount(currentPlayerCount() - 1);
+                    setPlayers(newUsernames);
+                    setCurrentPlayerCount(newUsernames.length);
                 }
             });
         } catch (error) {

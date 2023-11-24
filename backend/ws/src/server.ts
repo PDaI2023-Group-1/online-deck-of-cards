@@ -179,5 +179,46 @@ wss.on('connection', (ws: WebSocket) => {
         }
     });
 
+    ws.onclose = () => {
+        console.log('A client disconnected');
+        const playerId = playerIdsByWebsockets.get(ws);
+        if (playerId === undefined) {
+            console.log('player id undefined');
+            return;
+        }
+
+        const player = playerData.get(playerId);
+
+        if (player === undefined) {
+            console.log('player data undefined');
+            return;
+        }
+
+        const room = rooms.get(player.roomCode);
+        if (room === undefined) {
+            console.log('room not found when joining');
+            return;
+        }
+
+        const players = room.players.filter(
+            (socket: WebSocket) => socket !== ws
+        );
+
+        room.players = players;
+        rooms.set(player.roomCode, room);
+
+        players.forEach((socket: WebSocket) => {
+            socket.send(
+                JSON.stringify({
+                    event: 'player-left',
+                    username: player.username,
+                })
+            );
+        });
+
+        playerIdsByWebsockets.delete(ws);
+        playerData.delete(playerId);
+    };
+
     ws.on('error', (error) => console.error('WebSocket error:', error));
 });
