@@ -201,46 +201,42 @@ const GameArea: Component<GameAreaProps> = (props) => {
                 </For>
             </div>
             {/* move player to its own component, this is quickly getting out of hand or maybe not, this is fine if we want to deal with a trainwreck but get this done quick*/}
-            <For each={players()}>
-                {(player) => {
-                    return (
-                        <div
-                            draggable={false}
-                            onMouseEnter={(event) =>
-                                handleGiveCardToPlayer(event, event.target)
-                            }
-                            class={`ga-player ${player.id}`}
-                            style={{
-                                'background-color': 'blueviolet',
-                                width: '275px',
-                                height: '75px',
-                                'margin-top': '15px',
-                                'z-index': `${1000}`,
-                                position: 'relative',
-                            }}
-                        >
-                            <div draggable={false}>
-                                <p draggable={false}>
-                                    Username: {player.username}
-                                    <br />
-                                    Player id: {player.id}
-                                    <br />
-                                    Cards in hand:
-                                </p>
-                            </div>
+            {
+                <div
+                    draggable={false}
+                    onMouseEnter={(event) =>
+                        handleGiveCardToPlayer(event, event.target)
+                    }
+                    class={`ga-player ${players()[0].id}`}
+                    style={{
+                        'background-color': 'blueviolet',
+                        width: '275px',
+                        height: '75px',
+                        'margin-top': '15px',
+                        'z-index': `${1000}`,
+                        position: 'relative',
+                    }}
+                >
+                    <div draggable={false}>
+                        <p draggable={false}>
+                            Username: {players()[0].username}
+                            <br />
+                            Player id: {players()[0].id}
+                            <br />
+                            Cards in hand:
+                        </p>
+                    </div>
 
-                            <div
-                                onClick={(event) =>
-                                    handleHandCardClick(event, event.target)
-                                }
-                                draggable={false}
-                            >
-                                <Hand {...players()[0].cards} />
-                            </div>
-                        </div>
-                    );
-                }}
-            </For>
+                    <div
+                        onClick={(event) =>
+                            handleHandCardClick(event, event.target)
+                        }
+                        draggable={false}
+                    >
+                        <Hand {...players()[0].cards} />
+                    </div>
+                </div>
+            }
         </>
     );
 };
