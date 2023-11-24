@@ -79,6 +79,12 @@ const WaitingRoom: Component = () => {
                     }
                 }
 
+                if (data.event === 'joined-room') {
+                    setDeckCount(data.settings.deckCount);
+                    setJokerCount(data.settings.jokerCount);
+                    setCardsPerPlayer(data.settings.cardsPerPlayer);
+                }
+
                 if (data.event === 'player-joined') {
                     const usernames = [...players(), data.username];
                     setPlayers(usernames);

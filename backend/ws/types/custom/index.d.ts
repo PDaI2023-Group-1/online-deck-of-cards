@@ -58,6 +58,11 @@ type Token = {
 type Room = {
     maxPlayers: number;
     players: array<WebSocket>;
+    settings: {
+        deckCount: number;
+        cardsPerPlayer: number;
+        jokerCount: number;
+    };
 };
 
 type RoomDataChanged = {

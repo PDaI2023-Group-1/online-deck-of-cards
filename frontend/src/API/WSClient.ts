@@ -35,6 +35,15 @@ type JoinRoom = {
     playerId: number;
 };
 
+type JoinedRoom = {
+    event: 'joined-room';
+    settings: {
+        deckCount: number;
+        cardsPerPlayer: number;
+        jokerCount: number;
+    };
+};
+
 type Authorized = {
     event: 'authorized';
 };
@@ -51,7 +60,8 @@ type WSData =
     | PlayerChanged
     | JoinRoom
     | Authorized
-    | RoomDataChanged;
+    | RoomDataChanged
+    | JoinedRoom;
 
 type MessageCallback = (data: WSData) => void;
 

@@ -87,6 +87,11 @@ wss.on('connection', (ws: WebSocket) => {
             const room: Room = {
                 maxPlayers: player.maxPlayers!,
                 players: [ws],
+                settings: {
+                    deckCount: 1,
+                    cardsPerPlayer: 0,
+                    jokerCount: 0,
+                },
             };
 
             rooms.set(player.roomCode, room);
@@ -126,6 +131,7 @@ wss.on('connection', (ws: WebSocket) => {
             ws.send(
                 JSON.stringify({
                     event: 'joined-room',
+                    settings: room.settings,
                 })
             );
 
@@ -195,13 +201,23 @@ wss.on('connection', (ws: WebSocket) => {
 
             const room = rooms.get(player.roomCode);
             if (room === undefined) {
-                console.log('room not found when joining');
+                console.log('room not found');
                 return;
             }
 
             const players = room.players.filter(
                 (socket: WebSocket) => socket !== ws
             );
+
+            if (message.valueType === 'deck-count') {
+                room.settings.deckCount = message.value;
+            }
+            if (message.valueType === 'cards-per-player') {
+                room.settings.cardsPerPlayer = message.value;
+            }
+            if (message.valueType === 'joker-count') {
+                room.settings.jokerCount = message.value;
+            }
 
             players.forEach((socket: WebSocket) => {
                 socket.send(
