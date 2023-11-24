@@ -56,6 +56,7 @@ wss.on('connection', (ws: WebSocket) => {
                             event: 'unauthorized',
                         })
                     );
+                    ws.close();
                 });
         }
 
