@@ -5,7 +5,6 @@ type Room = {
     timestamp: number;
     maxPlayers: number;
     pinCode: string | null;
-    players: number[];
     ownerId: number;
 };
 
@@ -40,7 +39,6 @@ const createRoomCode = (
             timestamp: Date.now(),
             maxPlayers: maxPlayers,
             pinCode: pinCode,
-            players: [userId],
             ownerId: userId,
         };
         rooms[newRoom.roomCode] = newRoom;
@@ -62,7 +60,6 @@ const updateRoomInfo = (roomCode: string, playerIds: Array<number>): Room => {
         timestamp: rooms[roomCode].timestamp,
         maxPlayers: rooms[roomCode].maxPlayers,
         pinCode: rooms[roomCode].pinCode,
-        players: playerIds,
         ownerId: rooms[roomCode].ownerId,
     };
     rooms[newRoom.roomCode] = newRoom;

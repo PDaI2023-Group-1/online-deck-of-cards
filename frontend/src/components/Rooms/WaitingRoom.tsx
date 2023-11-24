@@ -1,9 +1,10 @@
 import { Component, createSignal, For, createEffect, onMount } from 'solid-js';
-import axios from 'axios';
+import axios, { Axios, AxiosError } from 'axios';
 import { writeClipboard } from '@solid-primitives/clipboard';
 import WSClient from '../../API/WSClient';
 import { jwtDecode } from 'jwt-decode';
 import GameArea from '../GameArea/GameArea';
+import { useNavigate } from '@solidjs/router';
 
 type RoomInfo = {
     roomInfo: {
@@ -33,6 +34,8 @@ const WaitingRoom: Component = () => {
     const [isOwner, setIsOwner] = createSignal(false);
     const [gameHasStarted, setGameHasStarted] = createSignal(false);
 
+    const navigate = useNavigate();
+
     let wsClient: WSClient;
 
     onMount(async () => {
@@ -45,12 +48,13 @@ const WaitingRoom: Component = () => {
         };
 
         try {
-            const { data, status } = await axios.get<RoomInfo>(
+            const { data } = await axios.get<RoomInfo>(
                 'http://127.0.0.1:8080/room/info',
                 config,
             );
 
-            if (status !== 200 || data.roomInfo === null) {
+            if (data.roomInfo === null) {
+                navigate('/room/create');
                 return;
             }
 
@@ -119,6 +123,11 @@ const WaitingRoom: Component = () => {
             });
         } catch (error) {
             console.error(error);
+            if (axios.isAxiosError(error)) {
+                if (error.response!.status === 401) {
+                    navigate('/room/create');
+                }
+            }
         }
     });
 
