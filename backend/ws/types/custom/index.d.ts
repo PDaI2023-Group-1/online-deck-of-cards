@@ -58,6 +58,7 @@ type Token = {
 type Room = {
     maxPlayers: number;
     players: array<WebSocket>;
+    isGameStarted: boolean;
     settings: {
         deckCount: number;
         cardsPerPlayer: number;

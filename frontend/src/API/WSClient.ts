@@ -111,14 +111,17 @@ class WSClient {
     }
 
     moveCard(cardPos: ICardPosition) {
-        if (!this.serverIsReady()) return;
-        this.client!.send(
-            JSON.stringify({
-                event: 'move-card',
-                playerId: this.playerId,
-                data: cardPos,
-            }),
-        );
+        if (!this.serverIsReady) return;
+        if (cardPos.cardId === undefined || cardPos.cardId < 0) return;
+        const message: MoveCardData = {
+            event: 'move-card',
+            cardId: cardPos.cardId,
+            playerId: this.playerId,
+            state: cardPos.state,
+            x: cardPos.x,
+            y: cardPos.y,
+        };
+        this.client!.send(JSON.stringify(message));
     }
 
     flipCard(cardId: number | undefined, isfaceUp: boolean) {

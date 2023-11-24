@@ -33,7 +33,7 @@ const WaitingRoom: Component = () => {
     const [isOwner, setIsOwner] = createSignal(false);
     const [gameHasStarted, setGameHasStarted] = createSignal(false);
 
-    const wsClient = new WSClient('');
+    let wsClient: WSClient;
 
     onMount(async () => {
         const token = localStorage.getItem('token');
@@ -61,6 +61,8 @@ const WaitingRoom: Component = () => {
             setMaxPlayerCount(data.roomInfo.maxPlayers);
             setRoomCode(data.roomInfo.roomCode);
             setIsOwner(decodedToken.isOwner!);
+
+            wsClient = new WSClient(decodedToken.id.toString());
 
             wsClient.connect('localhost', 8080);
             wsClient.onOpen(() => {
@@ -165,7 +167,7 @@ const WaitingRoom: Component = () => {
     return (
         <>
             {gameHasStarted() ? (
-                <GameArea wsClient={wsClient} />
+                <GameArea wsClient={wsClient!} />
             ) : (
                 <div class="flex flex-col justify-center items-center h-screen">
                     <div class="flex">

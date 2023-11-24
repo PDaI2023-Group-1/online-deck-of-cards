@@ -108,6 +108,7 @@ wss.on('connection', (ws: WebSocket) => {
                     cardsPerPlayer: 0,
                     jokerCount: 0,
                 },
+                isGameStarted: false,
             };
 
             rooms.set(player.roomCode, room);
@@ -191,6 +192,14 @@ wss.on('connection', (ws: WebSocket) => {
                     })
                 );
             });
+
+            if (room.isGameStarted) {
+                ws.send(
+                    JSON.stringify({
+                        event: 'game-started',
+                    })
+                );
+            }
         }
 
         if (message.event === 'flip-card') {
@@ -265,6 +274,9 @@ wss.on('connection', (ws: WebSocket) => {
                 console.log('room not found');
                 return;
             }
+
+            room.isGameStarted = true;
+            rooms.set(player.roomCode, room);
 
             const players = room.players.filter(
                 (socket: WebSocket) => socket !== ws
