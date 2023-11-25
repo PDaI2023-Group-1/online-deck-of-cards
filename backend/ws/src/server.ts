@@ -302,6 +302,15 @@ wss.on('connection', (ws: WebSocket) => {
         }
 
         if (message.event === 'kick-player') {
+            const player = getPlayerDataBySocket(ws);
+            if (player === undefined) {
+                return;
+            }
+
+            if (player.isOwner === false) {
+                return;
+            }
+
             const socket = getSocketByPlayerId(message.playerId);
             if (socket === undefined) {
                 return;
