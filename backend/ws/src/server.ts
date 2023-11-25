@@ -12,6 +12,7 @@ import {
     getPlayerDataBySocket,
     removePlayerData,
     removePlayerIdBySocket,
+    getSocketByPlayerId,
 } from './helpers/user';
 
 import { getRoomByCode, setRoomByCode } from './helpers/room';
@@ -20,6 +21,37 @@ if (process.env.SECRET_KEY === undefined || process.env.SECRET_KEY === null) {
     console.error('SECRET_KEY is not defined');
     process.exit(1);
 }
+
+const removePlayer = (ws: WebSocket) => {
+    const player = getPlayerDataBySocket(ws);
+
+    if (player === undefined) {
+        return;
+    }
+
+    const room = getRoomByCode(player.roomCode);
+    if (room === undefined) {
+        return;
+    }
+
+    const players = room.players.filter((socket: WebSocket) => socket !== ws);
+
+    room.players = players;
+    setRoomByCode(player.roomCode, room);
+
+    players.forEach((socket: WebSocket) => {
+        socket.send(
+            JSON.stringify({
+                event: 'player-left',
+                username: player.username,
+                id: player.id,
+            })
+        );
+    });
+
+    removePlayerIdBySocket(ws);
+    removePlayerData(player.id);
+};
 
 wss.on('connection', (ws: WebSocket) => {
     console.log('A new client Connected');
@@ -268,40 +300,20 @@ wss.on('connection', (ws: WebSocket) => {
                 );
             });
         }
+
+        if (message.event === 'kick-player') {
+            const socket = getSocketByPlayerId(message.playerId);
+            if (socket === undefined) {
+                return;
+            }
+            socket.send(JSON.stringify({ event: 'player-kicked' }));
+            removePlayer(socket);
+        }
     });
 
     ws.onclose = () => {
         console.log('A client disconnected');
-        const player = getPlayerDataBySocket(ws);
-
-        if (player === undefined) {
-            return;
-        }
-
-        const room = getRoomByCode(player.roomCode);
-        if (room === undefined) {
-            return;
-        }
-
-        const players = room.players.filter(
-            (socket: WebSocket) => socket !== ws
-        );
-
-        room.players = players;
-        setRoomByCode(player.roomCode, room);
-
-        players.forEach((socket: WebSocket) => {
-            socket.send(
-                JSON.stringify({
-                    event: 'player-left',
-                    username: player.username,
-                    id: player.id,
-                })
-            );
-        });
-
-        removePlayerIdBySocket(ws);
-        removePlayerData(player.id);
+        removePlayer(ws);
     };
 
     ws.on('error', (error) => console.error('WebSocket error:', error));

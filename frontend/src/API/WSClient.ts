@@ -62,6 +62,10 @@ type RoomFull = {
     event: 'room-full';
 };
 
+type PlayerKicked = {
+    event: 'player-kicked';
+};
+
 type WSData =
     | MoveCardData
     | FlipCardData
@@ -71,7 +75,8 @@ type WSData =
     | RoomDataChanged
     | JoinedRoom
     | StartGame
-    | RoomFull;
+    | RoomFull
+    | PlayerKicked;
 
 type MessageCallback = (data: WSData) => void;
 
@@ -191,6 +196,16 @@ class WSClient {
         this.client!.send(
             JSON.stringify({
                 event: 'start-game',
+            }),
+        );
+    }
+
+    kickPlayer(playerId: number) {
+        if (!this.serverIsReady) return;
+        this.client!.send(
+            JSON.stringify({
+                event: 'kick-player',
+                playerId: playerId,
             }),
         );
     }

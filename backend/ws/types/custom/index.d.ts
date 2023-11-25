@@ -76,6 +76,11 @@ type StartGame = {
     event: 'start-game';
 };
 
+type KickPlayer = {
+    event: 'kick-player';
+    playerId: number;
+};
+
 declare type WSData =
     | MoveCardData
     | FlipCardData
@@ -84,4 +89,5 @@ declare type WSData =
     | PlayerChanged
     | Authorize
     | RoomDataChanged
-    | StartGame;
+    | StartGame
+    | KickPlayer;

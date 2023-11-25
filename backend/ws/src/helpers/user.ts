@@ -20,6 +20,18 @@ const removePlayerIdBySocket = (socket: WebSocket): void => {
     playerIdsByWebsockets.delete(socket);
 };
 
+const getSocketByPlayerId = (playerId: number): WebSocket | undefined => {
+    const socket = Array.from(playerIdsByWebsockets.entries()).find(
+        ([_, id]) => id === playerId
+    );
+
+    if (socket === undefined || socket[0] === undefined) {
+        return undefined;
+    }
+
+    return socket[0];
+};
+
 // player id to player data map
 const setPlayerData = (playerId: number, decoded: Token): void => {
     playerData.set(playerId, decoded);
@@ -51,4 +63,5 @@ export {
     getPlayerDataBySocket,
     removePlayerData,
     removePlayerIdBySocket,
+    getSocketByPlayerId,
 };

@@ -92,6 +92,10 @@ const WaitingRoom: Component = () => {
                     }
                 }
 
+                if (data.event === 'player-kicked') {
+                    navigate('/room/create');
+                }
+
                 if (data.event === 'room-full') {
                     navigate('/room/create');
                     return;
@@ -165,7 +169,19 @@ const WaitingRoom: Component = () => {
         return (
             <For each={players()}>
                 {(player) => {
-                    return <li>{player.username}</li>;
+                    return (
+                        <li class="flex items-center justify-between py-1">
+                            <span>{player.username}</span>
+                            {player.id !== players()[0].id && isOwner() ? (
+                                <button
+                                    class="bg-red-500 text-white px-3 py-1 rounded"
+                                    onClick={() => kick(+player.id)}
+                                >
+                                    Kick
+                                </button>
+                            ) : null}
+                        </li>
+                    );
                 }}
             </For>
         );
@@ -189,6 +205,10 @@ const WaitingRoom: Component = () => {
     const handleJokerCount = (val: number) => {
         setJokerCount(val);
         wsClient.changeRoomData('joker-count', val);
+    };
+
+    const kick = (playerId: number) => {
+        wsClient.kickPlayer(playerId);
     };
 
     return (
