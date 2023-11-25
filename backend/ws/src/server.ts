@@ -205,6 +205,10 @@ wss.on('connection', (ws: WebSocket) => {
                 return;
             }
 
+            if (player.isOwner === false) {
+                return;
+            }
+
             const room = getRoomByCode(player.roomCode);
             if (room === undefined) {
                 return;
