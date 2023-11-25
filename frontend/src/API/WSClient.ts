@@ -58,6 +58,10 @@ type StartGame = {
     event: 'game-started';
 };
 
+type RoomFull = {
+    event: 'room-full';
+};
+
 type WSData =
     | MoveCardData
     | FlipCardData
@@ -66,7 +70,8 @@ type WSData =
     | Authorized
     | RoomDataChanged
     | JoinedRoom
-    | StartGame;
+    | StartGame
+    | RoomFull;
 
 type MessageCallback = (data: WSData) => void;
 

@@ -92,6 +92,11 @@ const WaitingRoom: Component = () => {
                     }
                 }
 
+                if (data.event === 'room-full') {
+                    navigate('/room/create');
+                    return;
+                }
+
                 if (data.event === 'joined-room') {
                     setDeckCount(data.settings.deckCount);
                     setJokerCount(data.settings.jokerCount);
