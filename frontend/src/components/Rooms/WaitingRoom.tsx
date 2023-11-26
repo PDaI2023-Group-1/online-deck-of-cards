@@ -4,7 +4,7 @@ import { writeClipboard } from '@solid-primitives/clipboard';
 import WSClient from '../../API/WSClient';
 import { jwtDecode } from 'jwt-decode';
 import GameArea, { IPlayer } from '../GameArea/GameArea';
-import { useNavigate } from '@solidjs/router';
+import { useNavigate, useParams } from '@solidjs/router';
 
 type RoomInfo = {
     roomInfo: {
@@ -23,6 +23,11 @@ type Token = {
     isOwner?: boolean;
 };
 
+type JoinRoomRequest = {
+    user: object;
+    token: Token;
+};
+
 const WaitingRoom: Component = () => {
     const [players, setPlayers] = createSignal<IPlayer[]>([]);
     const [currentPlayerCount, setCurrentPlayerCount] = createSignal(0);
@@ -35,19 +40,60 @@ const WaitingRoom: Component = () => {
     const [gameHasStarted, setGameHasStarted] = createSignal(false);
 
     const navigate = useNavigate();
+    const params = useParams();
 
     let wsClient: WSClient;
 
     onMount(async () => {
-        const token = localStorage.getItem('token');
+        let token = localStorage.getItem('token');
         if (token === null) {
             return;
         }
-        const config = {
-            headers: { Authorization: `Bearer ${token}` },
-        };
+
+        let decodedToken = jwtDecode<Token>(token);
+
+        if (
+            params.roomCode !== null &&
+            decodedToken.roomCode !== params.roomCode
+        ) {
+            try {
+                const config = {
+                    headers: { Authorization: `Bearer ${token}` },
+                };
+
+                const response = await axios.put<JoinRoomRequest>(
+                    'http://127.0.0.1:8080/room/' + params.roomCode,
+                    null,
+                    config,
+                );
+                console.log(response);
+                if (response.status === 200) {
+                    if (response.data.token !== undefined) {
+                        localStorage.setItem(
+                            'token',
+                            response.data.token.toString(),
+                        );
+                        token = response.data.token.toString();
+                        decodedToken = jwtDecode<Token>(token);
+                    }
+                }
+            } catch (error) {
+                console.log(error);
+                if (axios.isAxiosError(error)) {
+                    if (error.response!.status === 404) {
+                        navigate('/room/create');
+                    }
+                }
+                return;
+            }
+        }
 
         try {
+            const config = {
+                headers: { Authorization: `Bearer ${token}` },
+            };
+
+            console.log('getting info');
             const { data } = await axios.get<RoomInfo>(
                 'http://127.0.0.1:8080/room/info',
                 config,
@@ -57,8 +103,6 @@ const WaitingRoom: Component = () => {
                 navigate('/room/create');
                 return;
             }
-
-            const decodedToken = jwtDecode<Token>(token);
 
             const p: IPlayer = {
                 username: decodedToken.username,
@@ -77,6 +121,9 @@ const WaitingRoom: Component = () => {
 
             wsClient.connect('localhost', 8080);
             wsClient.onOpen(() => {
+                if (token === null) {
+                    return;
+                }
                 wsClient.authorize(token);
             });
 
@@ -97,6 +144,16 @@ const WaitingRoom: Component = () => {
                 }
 
                 if (data.event === 'room-full') {
+                    navigate('/room/create');
+                    return;
+                }
+
+                if (data.event === 'room-create-fail') {
+                    navigate('/room/create');
+                    return;
+                }
+
+                if (data.event === 'join-room-fail') {
                     navigate('/room/create');
                     return;
                 }

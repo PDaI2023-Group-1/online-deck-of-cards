@@ -66,6 +66,13 @@ type PlayerKicked = {
     event: 'player-kicked';
 };
 
+type RoomCreateFail = {
+    event: 'room-create-fail';
+};
+
+type JoinRoomFail = {
+    event: 'join-room-fail';
+};
 type WSData =
     | MoveCardData
     | FlipCardData
@@ -76,7 +83,9 @@ type WSData =
     | JoinedRoom
     | StartGame
     | RoomFull
-    | PlayerKicked;
+    | PlayerKicked
+    | RoomCreateFail
+    | JoinRoomFail;
 
 type MessageCallback = (data: WSData) => void;
 

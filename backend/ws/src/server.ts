@@ -117,10 +117,12 @@ wss.on('connection', (ws: WebSocket) => {
             const player = getPlayerDataBySocket(ws);
 
             if (player === undefined) {
+                ws.send(JSON.stringify({ event: 'room-create-fail' }));
                 return;
             }
 
             if (!player.isOwner) {
+                ws.send(JSON.stringify({ event: 'room-create-fail' }));
                 return;
             }
 
@@ -143,13 +145,13 @@ wss.on('connection', (ws: WebSocket) => {
             const player = getPlayerDataBySocket(ws);
 
             if (player === undefined) {
-                console.log('player data undefined');
+                ws.send(JSON.stringify({ event: 'join-room-fail' }));
                 return;
             }
 
             const room = getRoomByCode(player.roomCode);
             if (room === undefined) {
-                console.log('room not found when joining');
+                ws.send(JSON.stringify({ event: 'join-room-fail' }));
                 return;
             }
 
