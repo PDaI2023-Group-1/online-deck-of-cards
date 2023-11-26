@@ -47,6 +47,7 @@ const WaitingRoom: Component = () => {
     onMount(async () => {
         let token = localStorage.getItem('token');
         if (token === null) {
+            navigate('/user');
             return;
         }
 
