@@ -111,8 +111,8 @@ const WaitingRoom: Component = () => {
             wsClient = new WSClient(decodedToken.id.toString());
 
             wsClient.connect(
-                import.meta.env.VITE_WS_URL,
-                import.meta.env.VITE_WS_PORT,
+                import.meta.env.VITE_WS_URL ?? 'localhost',
+                parseInt(import.meta.env.VITE_WS_PORT ?? '8080'),
             );
             wsClient.onOpen(() => {
                 if (token === null) {
