@@ -1,7 +1,7 @@
 import WebSocket, { WebSocketServer } from 'ws';
 import dotenv from 'dotenv';
 dotenv.config();
-import { verify } from './helpers/token';
+import { verify } from './utils/token';
 
 const wss = new WebSocketServer({ port: 8080 });
 
@@ -13,9 +13,9 @@ import {
     removePlayerData,
     removePlayerIdBySocket,
     getSocketByPlayerId,
-} from './helpers/user';
+} from './utils/user';
 
-import { getRoomByCode, setRoomByCode } from './helpers/room';
+import { getRoomByCode, setRoomByCode } from './utils/room';
 
 if (process.env.SECRET_KEY === undefined || process.env.SECRET_KEY === null) {
     console.error('SECRET_KEY is not defined');
