@@ -1,7 +1,7 @@
 import { Component, createSignal, For, createEffect, onMount } from 'solid-js';
 import { useNavigate } from '@solidjs/router';
-import axios from 'axios';
 import { writeClipboard } from '@solid-primitives/clipboard';
+import { get, setAuthHeaders } from '../../utils/axios';
 
 const WaitingRoom: Component = () => {
     const navigate = useNavigate();
@@ -25,15 +25,11 @@ const WaitingRoom: Component = () => {
 
     onMount(async () => {
         const token = localStorage.getItem('token');
-        const config = {
-            headers: { Authorization: `Bearer ${token}` },
-        };
+
+        setAuthHeaders(token);
 
         try {
-            const { data, status } = await axios.get<RoomInfo>(
-                'http://127.0.0.1:8080/room/info',
-                config,
-            );
+            const { data, status } = await get<RoomInfo>('/room/info');
 
             if (status !== 200 || data.roomInfo === null) {
                 return;
