@@ -1,11 +1,11 @@
 import { Component, createSignal, For, createEffect, onMount } from 'solid-js';
-import axios from 'axios';
 import { writeClipboard } from '@solid-primitives/clipboard';
 import WSClient from '../../API/WSClient';
 import { jwtDecode } from 'jwt-decode';
 import GameArea, { IPlayer } from '../GameArea/GameArea';
 import { useNavigate, useParams } from '@solidjs/router';
-
+import { get, put, setAuthHeaders } from '../../utils/axios';
+import axios from 'axios';
 type RoomInfo = {
     roomInfo: {
         maxPlayers: number;
@@ -47,6 +47,7 @@ const WaitingRoom: Component = () => {
     onMount(async () => {
         let token = localStorage.getItem('token');
         if (token === null) {
+            navigate('/user');
             return;
         }
 
@@ -57,14 +58,11 @@ const WaitingRoom: Component = () => {
             decodedToken.roomCode !== params.roomCode
         ) {
             try {
-                const config = {
-                    headers: { Authorization: `Bearer ${token}` },
-                };
+                setAuthHeaders(token);
 
-                const response = await axios.put<JoinRoomRequest>(
+                const response = await put<JoinRoomRequest>(
                     'http://127.0.0.1:8080/room/' + params.roomCode,
                     null,
-                    config,
                 );
                 console.log(response);
                 if (response.status === 200) {
@@ -89,17 +87,10 @@ const WaitingRoom: Component = () => {
         }
 
         try {
-            const config = {
-                headers: { Authorization: `Bearer ${token}` },
-            };
+            setAuthHeaders(token);
+            const response = await get<RoomInfo>('/room/info');
 
-            console.log('getting info');
-            const { data } = await axios.get<RoomInfo>(
-                'http://127.0.0.1:8080/room/info',
-                config,
-            );
-
-            if (data.roomInfo === null) {
+            if (response.data.roomInfo === null) {
                 navigate('/room/create');
                 return;
             }
@@ -113,13 +104,16 @@ const WaitingRoom: Component = () => {
 
             setPlayers([p]);
             setCurrentPlayerCount(players().length);
-            setMaxPlayerCount(data.roomInfo.maxPlayers);
-            setRoomCode(data.roomInfo.roomCode);
+            setMaxPlayerCount(response.data.roomInfo.maxPlayers);
+            setRoomCode(response.data.roomInfo.roomCode);
             setIsOwner(decodedToken.isOwner!);
 
             wsClient = new WSClient(decodedToken.id.toString());
 
-            wsClient.connect('localhost', 8080);
+            wsClient.connect(
+                import.meta.env.VITE_WS_URL ?? 'localhost',
+                parseInt(import.meta.env.VITE_WS_PORT ?? '8080'),
+            );
             wsClient.onOpen(() => {
                 if (token === null) {
                     return;

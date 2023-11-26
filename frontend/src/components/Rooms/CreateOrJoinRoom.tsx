@@ -1,6 +1,15 @@
 import { Component, createSignal } from 'solid-js';
 import { useNavigate } from '@solidjs/router';
-import axios from 'axios';
+import { put, post, setAuthHeaders } from '../../utils/axios';
+
+type CreateRoomResponse = {
+    token: string;
+    roomCode: string;
+};
+
+type JoinRoomResponse = {
+    token: string;
+};
 
 const CreateOrJoinRoom: Component = () => {
     const [roomCode, setRoomCode] = createSignal<string>('');
@@ -8,17 +17,13 @@ const CreateOrJoinRoom: Component = () => {
 
     const navigate = useNavigate();
     const token = localStorage.getItem('token');
-    const config = {
-        headers: { Authorization: `Bearer ${token}` },
-    };
 
     const createRoom = async () => {
+        setAuthHeaders(token);
         try {
-            const response = await axios.post(
-                'http://127.0.0.1:8080/room',
-                { maxPlayers: maxPlayers() },
-                config,
-            );
+            const response = await post<CreateRoomResponse>('/room', {
+                maxPlayers: maxPlayers(),
+            });
 
             if (response.status === 201) {
                 localStorage.setItem('token', response.data.token);
@@ -34,11 +39,12 @@ const CreateOrJoinRoom: Component = () => {
             return;
         }
 
+        setAuthHeaders(token);
+
         try {
-            const response = await axios.put(
-                'http://127.0.0.1:8080/room/' + roomCode(),
+            const response = await put<JoinRoomResponse>(
+                '/room/' + roomCode(),
                 null,
-                config,
             );
             console.log(response);
             if (response.status === 200) {
