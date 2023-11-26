@@ -1,16 +1,20 @@
 import { Component } from 'solid-js';
 import { useNavigate } from '@solidjs/router';
-import axios from 'axios';
+import { post } from '../../utils/axios';
+
+type CreateGuestResponse = {
+    token: string;
+    user: { id: number; username: string };
+};
 
 const CreateGuest: Component = () => {
     const navigate = useNavigate();
 
     const createGuest = async () => {
         try {
-            const data = await axios.post('http://127.0.0.1:8080/user/guest');
-            console.log(data);
-            if (data.status === 201) {
-                localStorage.setItem('token', data.data.token);
+            const resp = await post<CreateGuestResponse>('/user/guest', null);
+            if (resp.status === 201) {
+                localStorage.setItem('token', resp.data.token);
                 navigate('/room/create');
             }
         } catch (error) {

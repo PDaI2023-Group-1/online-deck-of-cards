@@ -9,6 +9,7 @@ export interface IPlayer {
     id: string;
     pos: string;
     cards: Array<ICardProps>;
+    username: string;
 }
 
 const defaultCardProps: ICardProps = {
@@ -22,26 +23,35 @@ const defaultCardProps: ICardProps = {
     suit: ECardSuit.ace,
 };
 
-const playerProps: IPlayer = {
-    id: 'local' + `${Math.random()}`,
-    pos: 'right',
-    cards: [],
+type Settings = {
+    deckCount: number;
+    jokerCount: number;
+    cardsPerPlayer: number;
 };
 
-const GameArea: Component = () => {
+type GameAreaProps = {
+    wsClient: WSClient;
+    settings: Settings;
+    players: Array<IPlayer>;
+};
+
+const GameArea: Component<GameAreaProps> = (props) => {
     const [deck, setDeck] = createSignal<Array<ICardProps>>([]);
     const [activeCardId, setActiveCardId] = createSignal<number>();
     const [startPos, setStartPos] = createSignal({ x: 0, y: 0 });
-    const [players, setPlayers] = createSignal<Array<IPlayer>>([playerProps]);
+    // eslint-disable-next-line solid/reactivity
+    const [players, setPlayers] = createSignal<Array<IPlayer>>(props.players);
 
     // these need to be changed to be valid values coming from props instead
     // of just some stuff I was setting for dev testing purposes
     const deckState = new DeckStateManager(1, defaultCardProps);
-    const wsClient = new WSClient(playerProps.id);
+    // eslint-disable-next-line solid/reactivity
+    const wsClient = props.wsClient as WSClient;
 
     onMount(() => {
         console.clear(); //nice to get rid of unneccesary/old logs
         setDeck(deckState.getDeck());
+        console.log(props.settings);
     });
 
     /* disabling because player 0 represents local player and thus will always exist
@@ -113,7 +123,7 @@ const GameArea: Component = () => {
             return;
 
         //cant be out here giving cards to strangers
-        if (!target.classList.contains(playerProps.id)) return;
+        if (!target.classList.contains(players()[0].id)) return;
 
         const index = deck().findIndex((el) => el.id === activeCardId());
 
@@ -191,44 +201,42 @@ const GameArea: Component = () => {
                 </For>
             </div>
             {/* move player to its own component, this is quickly getting out of hand or maybe not, this is fine if we want to deal with a trainwreck but get this done quick*/}
-            <For each={players()}>
-                {(player) => {
-                    return (
-                        <div
-                            draggable={false}
-                            onMouseEnter={(event) =>
-                                handleGiveCardToPlayer(event, event.target)
-                            }
-                            class={`ga-player ${player.id}`}
-                            style={{
-                                'background-color': 'blueviolet',
-                                width: '275px',
-                                height: '75px',
-                                'margin-top': '15px',
-                                'z-index': `${1000}`,
-                                position: 'relative',
-                            }}
-                        >
-                            <div draggable={false}>
-                                <p draggable={false}>
-                                    Player id: {player.id}
-                                    <br />
-                                    Cards in hand:
-                                </p>
-                            </div>
+            {
+                <div
+                    draggable={false}
+                    onMouseEnter={(event) =>
+                        handleGiveCardToPlayer(event, event.target)
+                    }
+                    class={`ga-player ${players()[0].id}`}
+                    style={{
+                        'background-color': 'blueviolet',
+                        width: '275px',
+                        height: '75px',
+                        'margin-top': '15px',
+                        'z-index': `${1000}`,
+                        position: 'relative',
+                    }}
+                >
+                    <div draggable={false}>
+                        <p draggable={false}>
+                            Username: {players()[0].username}
+                            <br />
+                            Player id: {players()[0].id}
+                            <br />
+                            Cards in hand:
+                        </p>
+                    </div>
 
-                            <div
-                                onClick={(event) =>
-                                    handleHandCardClick(event, event.target)
-                                }
-                                draggable={false}
-                            >
-                                <Hand {...players()[0].cards} />
-                            </div>
-                        </div>
-                    );
-                }}
-            </For>
+                    <div
+                        onClick={(event) =>
+                            handleHandCardClick(event, event.target)
+                        }
+                        draggable={false}
+                    >
+                        <Hand {...players()[0].cards} />
+                    </div>
+                </div>
+            }
         </>
     );
 };
