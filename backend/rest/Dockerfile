@@ -6,7 +6,7 @@ COPY ./ ./
 RUN npm ci
 
 # Start the application
-CMD ["npm", "run", "dev"]
+CMD ["tsc"]
 
 # Expose the port that the application will listen on
 EXPOSE 8080
