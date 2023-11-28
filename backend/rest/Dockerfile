@@ -5,7 +5,7 @@ WORKDIR /
 COPY ./ ./
 RUN npm ci
 
-CMD ["npx", "tsc"]
+RUN npx tsc
 
 # Start the application
 CMD ["node", "dist/src/server.js"]
