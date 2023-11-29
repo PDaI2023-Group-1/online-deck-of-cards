@@ -2,19 +2,20 @@ import { Component, For, createSignal, onMount } from 'solid-js';
 import Card, { ICardProps, ECardState, ECardSuit } from './Card/Card';
 import Hand from './Hand/Hand';
 import './GameAreaStyles.css';
-
-import { addDeck, generateDeckArray, shuffleDeck } from './ga-utils';
+import WSClient from '../../API/WSClient';
+import DeckStateManager from './DeckStateManager';
 
 export interface IPlayer {
     id: string;
     pos: string;
     cards: Array<ICardProps>;
+    username: string;
 }
 
 const defaultCardProps: ICardProps = {
     id: 0,
     pos: { x: 250, y: 150 },
-    isFaceUp: true,
+    isFaceUp: false,
     order: 0,
     cardState: ECardState.onTable,
     playerId: '',
@@ -22,23 +23,59 @@ const defaultCardProps: ICardProps = {
     suit: ECardSuit.ace,
 };
 
-const playerProps: IPlayer = {
-    id: 'local',
-    pos: 'right',
-    cards: [],
+type Settings = {
+    deckCount: number;
+    jokerCount: number;
+    cardsPerPlayer: number;
 };
 
-const GameArea: Component = () => {
+type GameAreaProps = {
+    wsClient: WSClient;
+    settings: Settings;
+    players: Array<IPlayer>;
+};
+
+const GameArea: Component<GameAreaProps> = (props) => {
     const [deck, setDeck] = createSignal<Array<ICardProps>>([]);
     const [activeCardId, setActiveCardId] = createSignal<number>();
     const [startPos, setStartPos] = createSignal({ x: 0, y: 0 });
-    const [players, setPlayers] = createSignal<Array<IPlayer>>([playerProps]);
+    // eslint-disable-next-line solid/reactivity
+    const [players, setPlayers] = createSignal<Array<IPlayer>>(props.players);
+
+    // these need to be changed to be valid values coming from props instead
+    // of just some stuff I was setting for dev testing purposes
+    const deckState = new DeckStateManager(1, defaultCardProps);
+    // eslint-disable-next-line solid/reactivity
+    const wsClient = props.wsClient as WSClient;
 
     onMount(() => {
-        setDeck(shuffleDeck(generateDeckArray(defaultCardProps)));
+        console.clear(); //nice to get rid of unneccesary/old logs
+        setDeck(deckState.getDeck());
+        console.log(props.settings);
     });
 
-    console.clear();
+    /* disabling because player 0 represents local player and thus will always exist
+     * players[0] should be immediately set on page load, and after ws server tells
+     * who the rest of the players are they should be appended to 1-xxx */
+    // eslint-disable-next-line solid/reactivity
+    wsClient.onMessage((data) => {
+        if (data.event === 'move-card') {
+            if (data.playerId === players()[0].id) return;
+            const pos = {
+                x: data.x,
+                y: data.y,
+            };
+            const { newDeck } = deckState.updateCardPos(data.cardId, pos);
+
+            setDeck(newDeck);
+        }
+
+        if (data.event === 'flip-card') {
+            if (data.playerId === players()[0].id) return;
+            const { newDeck } = deckState.flipCard(data.cardId);
+            setDeck(newDeck);
+        }
+    });
 
     const handleMouseDown = (event: MouseEvent, target: Element) => {
         if (!target.classList.contains('card-container')) return;
@@ -47,36 +84,34 @@ const GameArea: Component = () => {
     };
 
     const handleMouseMove = (event: MouseEvent) => {
+        if (typeof activeCardId() === 'undefined') return;
+
         const pos = { x: event.x, y: event.y };
-        const index = deck().findIndex((el) => el.id === activeCardId());
-        if (typeof index !== 'number' || index === -1) return;
 
-        const newCard = { ...deck()[index], pos };
+        const { newDeck, index } = deckState.updateCardPos(activeCardId(), pos);
+        setDeck(newDeck);
 
-        setDeck(deck().map((e, i) => (i === index ? newCard : e)));
+        wsClient.moveCard({
+            cardId: activeCardId(),
+            state: deck()[index].cardState,
+            x: pos.x,
+            y: pos.y,
+        });
     };
 
     const handleMouseUp = (event: MouseEvent, target: Element) => {
         if (!target.classList.contains('card-container')) return;
-        if (typeof activeCardId() === undefined || Number.isNaN(activeCardId()))
-            return;
 
-        const index = deck().findIndex((el) => el.id === activeCardId());
+        const currentPos = { x: event.x, y: event.y };
+        const moved = JSON.stringify(startPos()) !== JSON.stringify(currentPos);
+        if (!moved) {
+            const { newDeck, isFaceUp } = deckState.flipCard(activeCardId());
 
-        if (typeof index !== 'number' && index < 0) return;
+            if (typeof isFaceUp === 'undefined') return;
+            setDeck(newDeck);
+            wsClient.flipCard(activeCardId(), isFaceUp);
+        }
 
-        const moved =
-            startPos().x - event.x !== 0 && startPos().y - event.y !== 0;
-
-        const pos = { x: event.x, y: event.y };
-
-        const newCard: ICardProps = {
-            ...deck()[index],
-            pos: moved ? pos : deck()[index].pos,
-            isFaceUp: moved ? deck()[index].isFaceUp : !deck()[index].isFaceUp,
-        };
-
-        setDeck(deck().map((e, i) => (i === index ? newCard : e)));
         setActiveCardId(undefined);
     };
 
@@ -88,7 +123,7 @@ const GameArea: Component = () => {
             return;
 
         //cant be out here giving cards to strangers
-        if (!target.classList.contains('local')) return;
+        if (!target.classList.contains(players()[0].id)) return;
 
         const index = deck().findIndex((el) => el.id === activeCardId());
 
@@ -111,14 +146,6 @@ const GameArea: Component = () => {
         );
         setDeck(deck().map((e, i) => (i === index ? updatedCard : e)));
         setActiveCardId(undefined);
-    };
-
-    const handleShuffle = () => {
-        console.table(deck());
-
-        const newDeck = shuffleDeck(deck());
-        console.table(newDeck);
-        setDeck(newDeck);
     };
 
     const handleHandCardClick = (event: MouseEvent, target: Element) => {
@@ -149,15 +176,6 @@ const GameArea: Component = () => {
 
     return (
         <>
-            <div class="ga-info-panel">
-                <button
-                    onClick={() => setDeck(addDeck(deck(), defaultCardProps))}
-                >
-                    Add deck
-                </button>
-                <button onClick={() => setDeck([])}>Reset deck</button>
-                <button onClick={() => handleShuffle()}>Shuffle deck</button>
-            </div>
             <div
                 id="ga-container"
                 onMouseMove={(event) => handleMouseMove(event)}
@@ -183,44 +201,42 @@ const GameArea: Component = () => {
                 </For>
             </div>
             {/* move player to its own component, this is quickly getting out of hand or maybe not, this is fine if we want to deal with a trainwreck but get this done quick*/}
-            <For each={players()}>
-                {(player) => {
-                    return (
-                        <div
-                            draggable={false}
-                            onMouseEnter={(event) =>
-                                handleGiveCardToPlayer(event, event.target)
-                            }
-                            class={`ga-player ${player.id}`}
-                            style={{
-                                'background-color': 'blueviolet',
-                                width: '275px',
-                                height: '75px',
-                                'margin-top': '15px',
-                                'z-index': `${1000}`,
-                                position: 'relative',
-                            }}
-                        >
-                            <div draggable={false}>
-                                <p draggable={false}>
-                                    Player id: {player.id}
-                                    <br />
-                                    Cards in hand:
-                                </p>
-                            </div>
+            {
+                <div
+                    draggable={false}
+                    onMouseEnter={(event) =>
+                        handleGiveCardToPlayer(event, event.target)
+                    }
+                    class={`ga-player ${players()[0].id}`}
+                    style={{
+                        'background-color': 'blueviolet',
+                        width: '275px',
+                        height: '75px',
+                        'margin-top': '15px',
+                        'z-index': `${1000}`,
+                        position: 'relative',
+                    }}
+                >
+                    <div draggable={false}>
+                        <p draggable={false}>
+                            Username: {players()[0].username}
+                            <br />
+                            Player id: {players()[0].id}
+                            <br />
+                            Cards in hand:
+                        </p>
+                    </div>
 
-                            <div
-                                onClick={(event) =>
-                                    handleHandCardClick(event, event.target)
-                                }
-                                draggable={false}
-                            >
-                                <Hand {...players()[0].cards} />
-                            </div>
-                        </div>
-                    );
-                }}
-            </For>
+                    <div
+                        onClick={(event) =>
+                            handleHandCardClick(event, event.target)
+                        }
+                        draggable={false}
+                    >
+                        <Hand {...players()[0].cards} />
+                    </div>
+                </div>
+            }
         </>
     );
 };
