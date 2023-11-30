@@ -4,6 +4,7 @@ dotenv.config();
 import { verify } from './utils/token';
 
 const wss = new WebSocketServer({ port: 8080 });
+console.log(`WebSocket Server started on port 8080`);
 
 import {
     hasSocket,
@@ -45,7 +46,7 @@ const removePlayer = (ws: WebSocket) => {
                 event: 'player-left',
                 username: player.username,
                 id: player.id,
-            })
+            }),
         );
     });
 
@@ -63,7 +64,7 @@ wss.on('connection', (ws: WebSocket) => {
             ws.send(
                 JSON.stringify({
                     event: 'unauthorized',
-                })
+                }),
             );
             ws.close();
             return;
@@ -78,7 +79,7 @@ wss.on('connection', (ws: WebSocket) => {
                     ws.send(
                         JSON.stringify({
                             event: 'authorized',
-                        })
+                        }),
                     );
                 })
                 .catch((err) => {
@@ -86,7 +87,7 @@ wss.on('connection', (ws: WebSocket) => {
                     ws.send(
                         JSON.stringify({
                             event: 'unauthorized',
-                        })
+                        }),
                     );
                     ws.close();
                 });
@@ -105,7 +106,7 @@ wss.on('connection', (ws: WebSocket) => {
             }
 
             const players = room.players.filter(
-                (socket: WebSocket) => socket !== ws
+                (socket: WebSocket) => socket !== ws,
             );
 
             players.forEach((socket: WebSocket) => {
@@ -159,7 +160,7 @@ wss.on('connection', (ws: WebSocket) => {
                 ws.send(
                     JSON.stringify({
                         event: 'room-full',
-                    })
+                    }),
                 );
                 return;
             }
@@ -168,7 +169,7 @@ wss.on('connection', (ws: WebSocket) => {
                 JSON.stringify({
                     event: 'joined-room',
                     settings: room.settings,
-                })
+                }),
             );
 
             // loop over current players and send player-joined to self
@@ -184,7 +185,7 @@ wss.on('connection', (ws: WebSocket) => {
                         event: 'player-joined',
                         username: player.username,
                         id: player.id,
-                    })
+                    }),
                 );
             });
 
@@ -196,7 +197,7 @@ wss.on('connection', (ws: WebSocket) => {
                         event: 'player-joined',
                         username: player.username,
                         id: player.id,
-                    })
+                    }),
                 );
             });
 
@@ -208,7 +209,7 @@ wss.on('connection', (ws: WebSocket) => {
                 ws.send(
                     JSON.stringify({
                         event: 'game-started',
-                    })
+                    }),
                 );
             }
         }
@@ -225,7 +226,7 @@ wss.on('connection', (ws: WebSocket) => {
             }
 
             const players = room.players.filter(
-                (socket: WebSocket) => socket !== ws
+                (socket: WebSocket) => socket !== ws,
             );
 
             players.forEach((socket: WebSocket) => {
@@ -249,7 +250,7 @@ wss.on('connection', (ws: WebSocket) => {
             }
 
             const players = room.players.filter(
-                (socket: WebSocket) => socket !== ws
+                (socket: WebSocket) => socket !== ws,
             );
 
             if (message.valueType === 'deck-count') {
@@ -268,7 +269,7 @@ wss.on('connection', (ws: WebSocket) => {
                         event: 'room-data-changed',
                         valueType: message.valueType,
                         value: message.value,
-                    })
+                    }),
                 );
             });
         }
@@ -291,14 +292,14 @@ wss.on('connection', (ws: WebSocket) => {
             setRoomByCode(player.roomCode, room);
 
             const players = room.players.filter(
-                (socket: WebSocket) => socket !== ws
+                (socket: WebSocket) => socket !== ws,
             );
 
             players.forEach((socket: WebSocket) => {
                 socket.send(
                     JSON.stringify({
                         event: 'game-started',
-                    })
+                    }),
                 );
             });
         }
