@@ -1,17 +1,15 @@
-# version: "3"
-
 services:
   frontend:
     build: ./frontend/
     ports:
-      - "80:80"
+      - ${FRONTEND_PORT}':'${FRONTEND_PORT}
 
   backend_rest:
     build: ./backend/rest/
     ports:
-      - "8080:8080"
+      - ${BACKEND_REST_PORT}':'${BACKEND_REST_PORT}
 
   backend_ws:
     build: ./backend/ws/
     ports:
-      - "8030:8030"
+      - ${BACKEND_WS_PORT}':'${BACKEND_WS_PORT}
