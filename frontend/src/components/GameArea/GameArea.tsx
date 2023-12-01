@@ -76,15 +76,7 @@ const GameArea: Component<GameAreaProps> = (props) => {
             setDeck(newDeck);
         }
 
-        if (data.event === 'hide-card') {
-            const { newDeck } = deckState.toggleCardVisibility(
-                data.cardId,
-                data.playerId,
-            );
-            setDeck(newDeck);
-        }
-
-        if (data.event === 'show-card') {
+        if (data.event === 'hide-card' || data.event === 'show-card') {
             const { newDeck } = deckState.toggleCardVisibility(
                 data.cardId,
                 data.playerId,

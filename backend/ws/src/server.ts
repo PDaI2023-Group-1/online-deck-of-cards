@@ -15,7 +15,7 @@ import {
     getSocketByPlayerId,
 } from './utils/user';
 
-import { getRoomByCode, setRoomByCode } from './utils/room';
+import { getRoomByCode, setRoomByCode, removeRoomByCode } from './utils/room';
 
 if (process.env.SECRET_KEY === undefined || process.env.SECRET_KEY === null) {
     console.error('SECRET_KEY is not defined');
@@ -48,6 +48,13 @@ const removePlayer = (ws: WebSocket) => {
             })
         );
     });
+
+    if (player.isOwner) {
+        removeRoomByCode(player.roomCode);
+        players.forEach((socket: WebSocket) => {
+            socket.close();
+        });
+    }
 
     removePlayerIdBySocket(ws);
     removePlayerData(player.id);
