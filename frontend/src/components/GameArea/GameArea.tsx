@@ -1,4 +1,11 @@
-import { Component, For, createEffect, createSignal, onMount } from 'solid-js';
+import {
+    Component,
+    For,
+    Show,
+    createEffect,
+    createSignal,
+    onMount,
+} from 'solid-js';
 import Card, { ICardProps, ECardState, ECardSuit } from './Card/Card';
 import Hand from './Hand/Hand';
 import './GameAreaStyles.css';
@@ -14,7 +21,7 @@ export interface IPlayer {
 
 const defaultCardProps: ICardProps = {
     id: 0,
-    pos: { x: 250, y: 150 },
+    pos: { x: window.screen.width / 2, y: window.screen.height / 2.5 },
     isFaceUp: false,
     order: 0,
     cardState: ECardState.onTable,
@@ -185,69 +192,87 @@ const GameArea: Component<GameAreaProps> = (props) => {
         setPlayers(newPlayers);
     };
 
+    const PlayerHand = (player: IPlayer) => {
+        return (
+            <div
+                draggable={false}
+                onMouseEnter={(event) =>
+                    handleGiveCardToPlayer(event, event.target)
+                }
+                class={`ga-player ${player.id}`}
+                style={{
+                    'background-color': 'blueviolet',
+                    width: '275px',
+                    height: '75px',
+                    'margin-top': '15px',
+                    'z-index': `${1000}`,
+                    position: 'relative',
+                }}
+            >
+                <div draggable={false}>
+                    <p draggable={false}>
+                        Username: {player.username}
+                        <br />
+                        Player id: {player.id}
+                        <br />
+                        Cards in hand:
+                    </p>
+                </div>
+
+                <div
+                    onClick={(event) =>
+                        handleHandCardClick(event, event.target)
+                    }
+                    draggable={false}
+                >
+                    <Hand {...player.cards} />
+                </div>
+            </div>
+        );
+    };
+
     return (
         <>
-            <div
-                id="ga-container"
-                onMouseMove={(event) => handleMouseMove(event)}
-                onMouseDown={(event) => handleMouseDown(event, event.target)}
-                onMouseUp={(event) => handleMouseUp(event, event.target)}
-            >
-                <For each={deck()}>
-                    {(card, i) => {
-                        const getProps = (
-                            props: ICardProps,
-                            index: number,
-                        ): ICardProps => {
-                            props.order = deck().length - index;
-                            return props;
-                        };
-
-                        return (
-                            <span id={`${i()}`} draggable={false}>
-                                <Card {...getProps(card, i())} />
-                            </span>
-                        );
-                    }}
-                </For>
-            </div>
-            {/* move player to its own component, this is quickly getting out of hand or maybe not, this is fine if we want to deal with a trainwreck but get this done quick*/}
-            {
+            <Show when={players().length >= 2}>
+                <PlayerHand {...players()[1]} />
+            </Show>
+            <div class="flex justify-between items-center">
+                <Show when={players().length >= 3}>
+                    <PlayerHand {...players()[2]} />
+                </Show>
                 <div
-                    draggable={false}
-                    onMouseEnter={(event) =>
-                        handleGiveCardToPlayer(event, event.target)
+                    id="ga-container"
+                    onMouseMove={(event) => handleMouseMove(event)}
+                    onMouseDown={(event) =>
+                        handleMouseDown(event, event.target)
                     }
-                    class={`ga-player ${players()[0].id}`}
-                    style={{
-                        'background-color': 'blueviolet',
-                        width: '275px',
-                        height: '75px',
-                        'margin-top': '15px',
-                        'z-index': `${1000}`,
-                        position: 'relative',
-                    }}
+                    onMouseUp={(event) => handleMouseUp(event, event.target)}
                 >
-                    <div draggable={false}>
-                        <p draggable={false}>
-                            Username: {players()[0].username}
-                            <br />
-                            Player id: {players()[0].id}
-                            <br />
-                            Cards in hand:
-                        </p>
-                    </div>
+                    <For each={deck()}>
+                        {(card, i) => {
+                            const getProps = (
+                                props: ICardProps,
+                                index: number,
+                            ): ICardProps => {
+                                props.order = deck().length - index;
+                                return props;
+                            };
 
-                    <div
-                        onClick={(event) =>
-                            handleHandCardClick(event, event.target)
-                        }
-                        draggable={false}
-                    >
-                        <Hand {...players()[0].cards} />
-                    </div>
+                            return (
+                                <span id={`${i()}`} draggable={false}>
+                                    <Card {...getProps(card, i())} />
+                                </span>
+                            );
+                        }}
+                    </For>
                 </div>
-            }
+                <Show when={players().length >= 4}>
+                    <PlayerHand {...players()[3]} />
+                </Show>
+            </div>
+
+            {/* move player to its own component, this is quickly getting out of hand or maybe not, this is fine if we want to deal with a trainwreck but get this done quick*/}
+            <PlayerHand {...players()[0]} />
         </>
     );
 };
