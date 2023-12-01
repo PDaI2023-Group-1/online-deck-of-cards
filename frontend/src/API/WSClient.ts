@@ -73,6 +73,13 @@ type RoomCreateFail = {
 type JoinRoomFail = {
     event: 'join-room-fail';
 };
+
+type CardEvent = {
+    event: 'hide-card' | 'show-card';
+    cardId: number;
+    playerId: string;
+};
+
 type WSData =
     | MoveCardData
     | FlipCardData
@@ -85,7 +92,8 @@ type WSData =
     | RoomFull
     | PlayerKicked
     | RoomCreateFail
-    | JoinRoomFail;
+    | JoinRoomFail
+    | CardEvent;
 
 type MessageCallback = (data: WSData) => void;
 
@@ -215,6 +223,28 @@ class WSClient {
             JSON.stringify({
                 event: 'kick-player',
                 playerId: playerId,
+            }),
+        );
+    }
+
+    hideCard(cardId: number) {
+        if (!this.serverIsReady) return;
+        this.client!.send(
+            JSON.stringify({
+                event: 'hide-card',
+                cardId: cardId,
+                playerId: this.playerId,
+            }),
+        );
+    }
+
+    showCard(cardId: number) {
+        if (!this.serverIsReady) return;
+        this.client!.send(
+            JSON.stringify({
+                event: 'show-card',
+                cardId: cardId,
+                playerId: this.playerId,
             }),
         );
     }

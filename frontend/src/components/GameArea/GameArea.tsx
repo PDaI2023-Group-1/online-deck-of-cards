@@ -1,4 +1,4 @@
-import { Component, For, createSignal, onMount } from 'solid-js';
+import { Component, For, createEffect, createSignal, onMount } from 'solid-js';
 import Card, { ICardProps, ECardState, ECardSuit } from './Card/Card';
 import Hand from './Hand/Hand';
 import './GameAreaStyles.css';
@@ -75,6 +75,22 @@ const GameArea: Component<GameAreaProps> = (props) => {
             const { newDeck } = deckState.flipCard(data.cardId);
             setDeck(newDeck);
         }
+
+        if (data.event === 'hide-card') {
+            const { newDeck } = deckState.toggleCardVisibility(
+                data.cardId,
+                data.playerId,
+            );
+            setDeck(newDeck);
+        }
+
+        if (data.event === 'show-card') {
+            const { newDeck } = deckState.toggleCardVisibility(
+                data.cardId,
+                data.playerId,
+            );
+            setDeck(newDeck);
+        }
     });
 
     const handleMouseDown = (event: MouseEvent, target: Element) => {
@@ -85,7 +101,6 @@ const GameArea: Component<GameAreaProps> = (props) => {
 
     const handleMouseMove = (event: MouseEvent) => {
         if (typeof activeCardId() === 'undefined') return;
-
         const pos = { x: event.x, y: event.y };
 
         const { newDeck, index } = deckState.updateCardPos(activeCardId(), pos);
@@ -126,6 +141,7 @@ const GameArea: Component<GameAreaProps> = (props) => {
         if (!target.classList.contains(players()[0].id)) return;
 
         const index = deck().findIndex((el) => el.id === activeCardId());
+        wsClient.hideCard(activeCardId()!);
 
         const updatedCard: ICardProps = {
             ...deck()[index],
@@ -155,6 +171,7 @@ const GameArea: Component<GameAreaProps> = (props) => {
         );
 
         const deckIndex = deck().findIndex((el) => el.id === +target.id);
+        wsClient.showCard(+target.id);
 
         let newCards = players()[0].cards.slice(0, index);
         const newCards2 = players()[0].cards.slice(index + 1);

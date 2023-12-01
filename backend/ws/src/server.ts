@@ -319,6 +319,27 @@ wss.on('connection', (ws: WebSocket) => {
             }
             socket.send(JSON.stringify({ event: 'player-kicked' }));
             removePlayer(socket);
+            socket.close();
+        }
+
+        if (message.event === 'hide-card' || message.event === 'show-card') {
+            const player = getPlayerDataBySocket(ws);
+            if (player === undefined) {
+                return;
+            }
+
+            const room = getRoomByCode(player.roomCode);
+            if (room === undefined) {
+                return;
+            }
+
+            const players = room.players.filter(
+                (socket: WebSocket) => socket !== ws
+            );
+
+            players.forEach((socket: WebSocket) => {
+                socket.send(JSON.stringify(message));
+            });
         }
     });
 
