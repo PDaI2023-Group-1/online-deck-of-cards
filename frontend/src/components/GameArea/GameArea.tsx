@@ -153,6 +153,7 @@ const GameArea: Component<GameAreaProps> = (props) => {
             }),
         );
         setDeck(deck().map((e, i) => (i === index ? updatedCard : e)));
+        deckState.setDeck(deck());
         setActiveCardId(undefined);
     };
 
@@ -180,6 +181,7 @@ const GameArea: Component<GameAreaProps> = (props) => {
             playerId: '',
         };
         setDeck(deck().map((e, i) => (i === deckIndex ? updatedCard : e)));
+        deckState.setDeck(deck());
         setPlayers(newPlayers);
     };
 

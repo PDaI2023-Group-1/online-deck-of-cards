@@ -18,6 +18,10 @@ class DeckStateManager {
         return this.decks;
     }
 
+    setDeck(deck: ICardProps[]): void {
+        this.decks = deck;
+    }
+
     updateCardPos(
         cardId: number | undefined,
         pos: { x: number; y: number },
