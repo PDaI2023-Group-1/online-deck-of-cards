@@ -14,9 +14,15 @@ const Hand: Component<Array<ICardProps>> = (props) => {
                             id={`${card.id}`}
                             draggable={false}
                         >
-                            {card.value}
-                            &nbsp;
-                            {card.suit}
+                            {card.isFaceUp ? (
+                                <>
+                                    {card.value}
+                                    &nbsp;
+                                    {card.suit}
+                                </>
+                            ) : (
+                                <>card</>
+                            )}
                             &nbsp;
                         </div>
                     );

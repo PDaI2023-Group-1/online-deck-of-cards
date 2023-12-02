@@ -21,7 +21,7 @@ export interface IPlayer {
 
 const defaultCardProps: ICardProps = {
     id: 0,
-    pos: { x: window.screen.width / 2, y: window.screen.height / 2.5 },
+    pos: { x: window.screen.width / 2, y: window.screen.height / 2.25 },
     isFaceUp: false,
     order: 0,
     cardState: ECardState.onTable,
@@ -68,10 +68,12 @@ const GameArea: Component<GameAreaProps> = (props) => {
     wsClient.onMessage((data) => {
         if (data.event === 'move-card') {
             if (data.playerId === players()[0].id) return;
+
             const pos = {
                 x: data.x,
                 y: data.y,
             };
+
             const { newDeck } = deckState.updateCardPos(data.cardId, pos);
 
             setDeck(newDeck);
@@ -83,12 +85,53 @@ const GameArea: Component<GameAreaProps> = (props) => {
             setDeck(newDeck);
         }
 
-        if (data.event === 'hide-card' || data.event === 'show-card') {
-            const { newDeck } = deckState.toggleCardVisibility(
+        if (data.event === 'hide-card') {
+            const { newDeck, newCard } = deckState.toggleCardVisibility(
                 data.cardId,
                 data.playerId,
             );
+
+            newCard.isFaceUp = false;
+
+            const pIdx = players().findIndex((p) => p.id === data.playerId);
+
+            const updatedPlayer: IPlayer = {
+                ...players()[pIdx],
+                cards: [...players()[pIdx].cards, newCard],
+            };
+
+            console.log(updatedPlayer);
+
+            setPlayers(
+                players().map((player, i) => {
+                    if (i === pIdx) return updatedPlayer;
+                    return player;
+                }),
+            );
             setDeck(newDeck);
+        }
+
+        if (data.event === 'show-card') {
+            const { newDeck, newCard } = deckState.toggleCardVisibility(
+                data.cardId,
+                data.playerId,
+            );
+            const pIdx = players().findIndex((p) => p.id === data.playerId);
+            setDeck(newDeck);
+
+            const updatedPlayer: IPlayer = {
+                ...players()[pIdx],
+                cards: players()[pIdx].cards.filter(
+                    (card) => card.id !== data.cardId,
+                ),
+            };
+
+            setPlayers(
+                players().map((player, i) => {
+                    if (i === pIdx) return updatedPlayer;
+                    return player;
+                }),
+            );
         }
     });
 
@@ -146,6 +189,7 @@ const GameArea: Component<GameAreaProps> = (props) => {
             ...deck()[index],
             cardState: ECardState.inHand,
             playerId: players()[0].id,
+            isFaceUp: true,
         };
 
         const updatedPlayer: IPlayer = {
@@ -169,6 +213,8 @@ const GameArea: Component<GameAreaProps> = (props) => {
         const index = players()[0].cards.findIndex(
             (el) => el.id === +target.id,
         );
+        // cant be here clicking other people cards and seeing them
+        if (index === -1) return;
 
         const deckIndex = deck().findIndex((el) => el.id === +target.id);
         wsClient.showCard(+target.id);
@@ -186,6 +232,7 @@ const GameArea: Component<GameAreaProps> = (props) => {
             ...deck()[deckIndex],
             cardState: ECardState.onTable,
             playerId: '',
+            isFaceUp: false,
         };
         setDeck(deck().map((e, i) => (i === deckIndex ? updatedCard : e)));
         deckState.setDeck(deck());
@@ -215,7 +262,7 @@ const GameArea: Component<GameAreaProps> = (props) => {
                         <br />
                         Player id: {player.id}
                         <br />
-                        Cards in hand:
+                        Cards in hand: {player.cards.length}
                     </p>
                 </div>
 

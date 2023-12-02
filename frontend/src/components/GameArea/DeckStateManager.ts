@@ -62,6 +62,7 @@ class DeckStateManager {
         playerId: string,
     ): {
         newDeck: ICardProps[];
+        newCard: ICardProps;
     } {
         const index = this.findCardIndex(cardId);
 
@@ -75,7 +76,7 @@ class DeckStateManager {
         };
 
         this.decks = this.setCardAtIndex(newCard, index);
-        return { newDeck: this.decks };
+        return { newDeck: this.decks, newCard: newCard };
     }
 
     private findCardIndex(cardId: number): number {
