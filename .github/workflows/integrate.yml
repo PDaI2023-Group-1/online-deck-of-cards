@@ -1,0 +1,7 @@
+name: Deck-of-Cards CI
+
+on:
+  pull_request:
+    branches: [deployment]
+
+jobs:
