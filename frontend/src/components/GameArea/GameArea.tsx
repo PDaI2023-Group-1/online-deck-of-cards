@@ -1,11 +1,4 @@
-import {
-    Component,
-    For,
-    Show,
-    createEffect,
-    createSignal,
-    onMount,
-} from 'solid-js';
+import { Component, For, Show, createSignal, onMount } from 'solid-js';
 import Card, { ICardProps, ECardState, ECardSuit } from './Card/Card';
 import Hand from './Hand/Hand';
 import './GameAreaStyles.css';
@@ -21,7 +14,7 @@ export interface IPlayer {
 
 const defaultCardProps: ICardProps = {
     id: 0,
-    pos: { x: window.screen.width / 2, y: window.screen.height / 2.25 },
+    pos: { x: window.screen.width / 2, y: window.screen.height / 2 - 80 },
     isFaceUp: false,
     order: 0,
     cardState: ECardState.onTable,
@@ -69,10 +62,31 @@ const GameArea: Component<GameAreaProps> = (props) => {
         if (data.event === 'move-card') {
             if (data.playerId === players()[0].id) return;
 
+            const pIdx = players().findIndex((p) => p.id === data.playerId);
+
             const pos = {
                 x: data.x,
                 y: data.y,
             };
+
+            if (players().length === 2) {
+                if (pIdx === 1) {
+                    pos.x = window.screen.width - data.x;
+                    pos.y = window.screen.height - data.y - 160;
+                }
+            }
+
+            if (players().length === 3) {
+                if (pIdx === 1) {
+                    pos.x = window.screen.width / 1.35 - data.y;
+                    pos.y = data.x - window.screen.height / 2.15;
+                }
+
+                if (pIdx === 2) {
+                    pos.x = window.screen.width / 3.9 + data.y;
+                    pos.y = data.x - window.screen.height / 2.15;
+                }
+            }
 
             const { newDeck } = deckState.updateCardPos(data.cardId, pos);
 
@@ -251,7 +265,6 @@ const GameArea: Component<GameAreaProps> = (props) => {
                     'background-color': 'blueviolet',
                     width: '275px',
                     height: '75px',
-                    'margin-top': '15px',
                     'z-index': `${1000}`,
                     position: 'relative',
                 }}
@@ -280,12 +293,19 @@ const GameArea: Component<GameAreaProps> = (props) => {
 
     return (
         <>
-            <Show when={players().length >= 2}>
-                <PlayerHand {...players()[1]} />
+            <Show when={players().length === 2}>
+                <div class="mb-6">
+                    <PlayerHand {...players()[1]} />
+                </div>
+            </Show>
+            <Show when={players().length === 4}>
+                <div class="mb-6">
+                    <PlayerHand {...players()[3]} />
+                </div>
             </Show>
             <div class="flex justify-between items-center">
-                <Show when={players().length >= 3}>
-                    <PlayerHand {...players()[2]} />
+                <Show when={players().length === 3}>
+                    <PlayerHand {...players()[1]} />
                 </Show>
                 <div
                     id="ga-container"
@@ -313,13 +333,15 @@ const GameArea: Component<GameAreaProps> = (props) => {
                         }}
                     </For>
                 </div>
-                <Show when={players().length >= 4}>
-                    <PlayerHand {...players()[3]} />
+                <Show when={players().length === 3}>
+                    <PlayerHand {...players()[2]} />
                 </Show>
             </div>
 
             {/* move player to its own component, this is quickly getting out of hand or maybe not, this is fine if we want to deal with a trainwreck but get this done quick*/}
-            <PlayerHand {...players()[0]} />
+            <div class="mt-6">
+                <PlayerHand {...players()[0]} />
+            </div>
         </>
     );
 };
