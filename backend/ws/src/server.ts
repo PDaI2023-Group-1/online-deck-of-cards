@@ -35,17 +35,20 @@ const removePlayer = (ws: WebSocket) => {
         return;
     }
 
-    const players = room.players.filter((socket: WebSocket) => socket !== ws);
+    const updatePlayers = room.players.filter(
+        (socket: WebSocket) => socket !== ws,
+    );
 
-    room.players = players;
+    room.players = updatePlayers;
     setRoomByCode(player.roomCode, room);
 
-    players.forEach((socket: WebSocket) => {
+    updatePlayers.forEach((socket: WebSocket) => {
         socket.send(
             JSON.stringify({
                 event: 'player-left',
                 username: player.username,
                 id: player.id,
+                gameState: room.gameState,
             }),
         );
     });
@@ -136,6 +139,9 @@ wss.on('connection', (ws: WebSocket) => {
                     jokerCount: 0,
                 },
                 isGameStarted: false,
+                gameState: {
+                    // Initialize game state here
+                },
             };
 
             setRoomByCode(player.roomCode, room);

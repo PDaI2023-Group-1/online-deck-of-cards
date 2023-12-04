@@ -64,6 +64,7 @@ type Room = {
         cardsPerPlayer: number;
         jokerCount: number;
     };
+    gameState: GameState;
 };
 
 type RoomDataChanged = {
@@ -74,6 +75,10 @@ type RoomDataChanged = {
 
 type StartGame = {
     event: 'start-game';
+};
+
+type EndTurn = {
+    event: 'end-turn';
 };
 
 type KickPlayer = {
