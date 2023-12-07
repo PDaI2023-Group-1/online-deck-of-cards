@@ -4,6 +4,7 @@ import Hand from './Hand/Hand';
 import './GameAreaStyles.css';
 import WSClient from '../../API/WSClient';
 import DeckStateManager from './DeckStateManager';
+import { useNavigate } from '@solidjs/router';
 
 export interface IPlayer {
     id: string;
@@ -41,6 +42,8 @@ const GameArea: Component<GameAreaProps> = (props) => {
     const [startPos, setStartPos] = createSignal({ x: 0, y: 0 });
     // eslint-disable-next-line solid/reactivity
     const [players, setPlayers] = createSignal<Array<IPlayer>>(props.players);
+
+    const navigate = useNavigate();
 
     // these need to be changed to be valid values coming from props instead
     // of just some stuff I was setting for dev testing purposes
@@ -164,6 +167,10 @@ const GameArea: Component<GameAreaProps> = (props) => {
                 (player) => player.id !== data.id.toString(),
             );
             setPlayers(newPlayers);
+        }
+
+        if (data.event === 'room-closed') {
+            navigate('/room/create');
         }
     });
 

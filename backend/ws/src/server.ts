@@ -52,6 +52,7 @@ const removePlayer = (ws: WebSocket) => {
     if (player.isOwner) {
         removeRoomByCode(player.roomCode);
         players.forEach((socket: WebSocket) => {
+            socket.send(JSON.stringify({ event: 'room-closed' }));
             socket.close();
         });
     }

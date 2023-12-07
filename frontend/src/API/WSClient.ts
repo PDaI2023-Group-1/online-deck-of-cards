@@ -80,6 +80,10 @@ type CardEvent = {
     playerId: string;
 };
 
+type RoomClosed = {
+    event: 'room-closed';
+};
+
 type WSData =
     | MoveCardData
     | FlipCardData
@@ -93,7 +97,8 @@ type WSData =
     | PlayerKicked
     | RoomCreateFail
     | JoinRoomFail
-    | CardEvent;
+    | CardEvent
+    | RoomClosed;
 
 type MessageCallback = (data: WSData) => void;
 
