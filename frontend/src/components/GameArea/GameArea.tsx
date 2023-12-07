@@ -147,6 +147,24 @@ const GameArea: Component<GameAreaProps> = (props) => {
                 }),
             );
         }
+
+        if (data.event === 'player-joined') {
+            const p: IPlayer = {
+                username: data.username,
+                id: data.id.toString(),
+                pos: 'right',
+                cards: [],
+            };
+            const newPlayers = [...players(), p];
+            setPlayers(newPlayers);
+        }
+
+        if (data.event === 'player-left') {
+            const newPlayers = players().filter(
+                (player) => player.id !== data.id.toString(),
+            );
+            setPlayers(newPlayers);
+        }
     });
 
     const handleMouseDown = (event: MouseEvent, target: Element) => {
