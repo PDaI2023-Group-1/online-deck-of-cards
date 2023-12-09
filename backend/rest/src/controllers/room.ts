@@ -22,7 +22,7 @@ const createRoom = (req: Request, res: Response) => {
     }
 
     if (maxPlayers) {
-        if (maxPlayers < 2 || maxPlayers > 8) {
+        if (maxPlayers < 2 || maxPlayers > 4) {
             return res.status(400).json({ error: 'Invalid max player count' });
         }
     }
