@@ -280,91 +280,84 @@ const GameArea: Component<GameAreaProps> = (props) => {
 
     const PlayerHand = (player: IPlayer) => {
         return (
-            <div
-                draggable={false}
-                onMouseEnter={(event) =>
-                    handleGiveCardToPlayer(event, event.target)
-                }
-                class={`ga-player ${player.id}`}
-                style={{
-                    'background-color': 'blueviolet',
-                    width: '275px',
-                    height: '75px',
-                    'z-index': `${1000}`,
-                    position: 'relative',
-                }}
-            >
-                <div draggable={false}>
-                    <p draggable={false}>
-                        Username: {player.username}
-                        <br />
-                        Player id: {player.id}
-                        <br />
-                        Cards in hand: {player.cards.length}
+            <>
+                <div draggable={false} class="flex justify-center pb-2">
+                    <p
+                        draggable={false}
+                        class="text-lg font-bold text-neutral-700"
+                    >
+                        {player.username}
                     </p>
                 </div>
-
                 <div
-                    onClick={(event) =>
-                        handleHandCardClick(event, event.target)
-                    }
                     draggable={false}
+                    onMouseEnter={(event) =>
+                        handleGiveCardToPlayer(event, event.target)
+                    }
+                    class={`ga-player ${player.id} flex items-center justify-center`}
                 >
-                    <Hand {...player.cards} />
+                    <div
+                        onClick={(event) =>
+                            handleHandCardClick(event, event.target)
+                        }
+                        draggable={false}
+                    >
+                        <Hand {...player.cards} />
+                    </div>
                 </div>
-            </div>
+            </>
         );
     };
 
     return (
         <>
             <Show when={players().length === 2}>
-                <div class="mb-6">
+                <div class="mb-4">
                     <PlayerHand {...players()[1]} />
                 </div>
             </Show>
             <Show when={players().length === 4}>
-                <div class="mb-6">
+                <div class="mb-4">
                     <PlayerHand {...players()[3]} />
                 </div>
             </Show>
-            <div class="flex justify-between items-center">
-                <Show when={players().length === 3}>
+            <Show when={players().length === 3}>
+                <div class="mr-4">
                     <PlayerHand {...players()[1]} />
-                </Show>
-                <div
-                    id="ga-container"
-                    onMouseMove={(event) => handleMouseMove(event)}
-                    onMouseDown={(event) =>
-                        handleMouseDown(event, event.target)
-                    }
-                    onMouseUp={(event) => handleMouseUp(event, event.target)}
-                >
-                    <For each={deck()}>
-                        {(card, i) => {
-                            const getProps = (
-                                props: ICardProps,
-                                index: number,
-                            ): ICardProps => {
-                                props.order = deck().length - index;
-                                return props;
-                            };
-
-                            return (
-                                <span id={`${i()}`} draggable={false}>
-                                    <Card {...getProps(card, i())} />
-                                </span>
-                            );
-                        }}
-                    </For>
                 </div>
-                <Show when={players().length === 3}>
-                    <PlayerHand {...players()[2]} />
-                </Show>
+            </Show>
+            <div
+                id="ga-container"
+                onMouseMove={(event) => handleMouseMove(event)}
+                onMouseDown={(event) => handleMouseDown(event, event.target)}
+                onMouseUp={(event) => handleMouseUp(event, event.target)}
+            >
+                <For each={deck()}>
+                    {(card, i) => {
+                        const getProps = (
+                            props: ICardProps,
+                            index: number,
+                        ): ICardProps => {
+                            props.order = deck().length - index;
+                            return props;
+                        };
+
+                        return (
+                            <span id={`${i()}`} draggable={false}>
+                                <Card {...getProps(card, i())} />
+                            </span>
+                        );
+                    }}
+                </For>
             </div>
+            <Show when={players().length === 3}>
+                <div class="ml-4">
+                    <PlayerHand {...players()[2]} />
+                </div>
+            </Show>
 
             {/* move player to its own component, this is quickly getting out of hand or maybe not, this is fine if we want to deal with a trainwreck but get this done quick*/}
-            <div class="mt-6">
+            <div class="mt-2">
                 <PlayerHand {...players()[0]} />
             </div>
         </>
