@@ -1,4 +1,5 @@
 import WebSocket from 'ws';
+import { Token } from '../../types/custom';
 
 const playerIdsByWebsockets = new Map<WebSocket, number>();
 const playerData = new Map<number, Token>();
@@ -22,7 +23,7 @@ const removePlayerIdBySocket = (socket: WebSocket): void => {
 
 const getSocketByPlayerId = (playerId: number): WebSocket | undefined => {
     const socket = Array.from(playerIdsByWebsockets.entries()).find(
-        ([_, id]) => id === playerId
+        ([_, id]) => id === playerId,
     );
 
     if (socket === undefined || socket[0] === undefined) {

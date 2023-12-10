@@ -2,6 +2,12 @@ import WebSocket, { WebSocketServer } from 'ws';
 import dotenv from 'dotenv';
 dotenv.config();
 import { verify } from './utils/token';
+import { WSData } from '../types/custom/index';
+import { ICardProps } from '../types/custom/index';
+import { Token, Room } from '../types/custom/index';
+import { ECardSuit } from '../types/custom/index';
+import { ECardState } from '../types/custom/index';
+import { GamePhase } from '../types/custom/index';
 
 const wss = new WebSocketServer({ port: 8080 });
 console.log(`WebSocket Server started on port 8080`);
@@ -21,6 +27,85 @@ import { getRoomByCode, setRoomByCode } from './utils/room';
 if (process.env.SECRET_KEY === undefined || process.env.SECRET_KEY === null) {
     console.error('SECRET_KEY is not defined');
     process.exit(1);
+}
+
+function isPlayerTurn(player: Token, room: Room): boolean {
+    return parseInt(room.gameState.currentPlayerId) === player.id;
+}
+
+function broadcastGameState(room: Room): void {
+    room.players.forEach((socket: WebSocket) => {
+        socket.send(
+            JSON.stringify({
+                event: 'game-state-update',
+                gameState: room.gameState,
+            }),
+        );
+    });
+}
+
+function initializeDeck(): Array<ICardProps> {
+    let deck: Array<ICardProps> = [];
+    let cardIdCounter = 1;
+
+    const suits: ECardSuit[] = [
+        ECardSuit.diamond,
+        ECardSuit.heart,
+        ECardSuit.ace,
+        ECardSuit.spade,
+    ];
+    const values: number[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
+
+    suits.forEach((suit) => {
+        values.forEach((value) => {
+            deck.push({
+                id: cardIdCounter++, //replace with actual id
+                pos: { x: 0, y: 0 },
+                isFaceUp: false,
+                order: cardIdCounter++, //replace with actual order
+                cardState: ECardState.inDeck,
+                playerId: '',
+                value: value,
+                suit: suit,
+            });
+        });
+    });
+
+    deck = shuffle(deck);
+
+    return deck;
+}
+
+// Example shuffle function
+function shuffle(deck: Array<ICardProps>): Array<ICardProps> {
+    //Fisher-Yates (Durstenfeld) shuffle algorithm
+    for (let i = deck.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [deck[i], deck[j]] = [deck[j], deck[i]];
+    }
+    return deck;
+}
+
+function endTurn(roomCode: string): void {
+    const room = getRoomByCode(roomCode);
+
+    if (!room) {
+        return;
+    }
+
+    room.gameState.currentPlayerId = determineNextPlayerId(room);
+
+    broadcastGameState(room);
+}
+
+function determineNextPlayerId(room: Room): string {
+    const currentPlayerIndex = room.playerIds.findIndex(
+        (id) => id === room.gameState.currentPlayerId,
+    );
+
+    let nextPlayerIndex = (currentPlayerIndex + 1) % room.playerIds.length;
+
+    return room.playerIds[nextPlayerIndex];
 }
 
 const removePlayer = (ws: WebSocket) => {
@@ -62,6 +147,7 @@ wss.on('connection', (ws: WebSocket) => {
 
     ws.on('message', (data: string) => {
         const message: WSData = JSON.parse(data);
+        const player = getPlayerDataBySocket(ws);
 
         if (!hasSocket(ws) && message.event !== 'authorize') {
             ws.send(
@@ -70,6 +156,11 @@ wss.on('connection', (ws: WebSocket) => {
                 }),
             );
             ws.close();
+            return;
+        }
+
+        if (!player) {
+            console.error('player data not found for the WebSocket connection');
             return;
         }
 
@@ -108,6 +199,20 @@ wss.on('connection', (ws: WebSocket) => {
                 return;
             }
 
+            if (!isPlayerTurn(player, room)) {
+                return;
+            }
+
+            const cardIndex = room.gameState.deck.findIndex(
+                (card: ICardProps) => card.id === message.cardId,
+            );
+            if (cardIndex >= 0) {
+                room.gameState.deck[cardIndex].pos = {
+                    x: message.x,
+                    y: message.y,
+                };
+            }
+
             const players = room.players.filter(
                 (socket: WebSocket) => socket !== ws,
             );
@@ -115,6 +220,8 @@ wss.on('connection', (ws: WebSocket) => {
             players.forEach((socket: WebSocket) => {
                 socket.send(JSON.stringify(message));
             });
+
+            broadcastGameState(room);
         }
 
         if (message.event === 'create-room') {
@@ -133,6 +240,7 @@ wss.on('connection', (ws: WebSocket) => {
             const room: Room = {
                 maxPlayers: player.maxPlayers!,
                 players: [ws],
+                playerIds: [player.id.toString()],
                 settings: {
                     deckCount: 1,
                     cardsPerPlayer: 0,
@@ -140,7 +248,10 @@ wss.on('connection', (ws: WebSocket) => {
                 },
                 isGameStarted: false,
                 gameState: {
-                    // Initialize game state here
+                    deck: initializeDeck(),
+                    players: [],
+                    currentPlayerId: '', // set when the game starts
+                    gamePhase: GamePhase.WaitingForPlayers,
                 },
             };
 
@@ -326,6 +437,10 @@ wss.on('connection', (ws: WebSocket) => {
             }
             socket.send(JSON.stringify({ event: 'player-kicked' }));
             removePlayer(socket);
+        }
+
+        if (message.event === 'play-card' || message.event === 'pass-turn') {
+            endTurn(player.roomCode);
         }
     });
 
