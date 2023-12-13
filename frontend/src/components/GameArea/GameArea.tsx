@@ -302,7 +302,10 @@ const GameArea: Component<GameAreaProps> = (props) => {
                         }
                         draggable={false}
                     >
-                        <Hand {...player.cards} />
+                        <Hand
+                            {...player}
+                            isOwnerOfCards={players()[0].id === player.id}
+                        />
                     </div>
                 </div>
             </>

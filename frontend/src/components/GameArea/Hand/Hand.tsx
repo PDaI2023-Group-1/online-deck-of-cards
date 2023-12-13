@@ -1,29 +1,39 @@
 import { Component, For } from 'solid-js';
-import { ICardProps } from '../Card/Card';
 
 import './Hand.css';
+import { IPlayer } from '../GameArea';
 
-const Hand: Component<Array<ICardProps>> = (props) => {
+interface PlayerHand extends IPlayer {
+    isOwnerOfCards: boolean;
+}
+
+const Hand: Component<PlayerHand> = (props) => {
     const getCardImageSource = (value: number, suit: number) => {
         return `/assets/${value}_of_${suit}.webp`;
     };
 
     return (
         <div id="own-hand" draggable={false} class="gap-2">
-            <For each={props}>
+            <For each={props.cards}>
                 {(card) => {
                     return (
                         <div
-                            class="own-card"
+                            class={
+                                props.isOwnerOfCards ? 'own-card' : 'card-back'
+                            }
                             id={`${card.id}`}
                             draggable={false}
-                            style={{
-                                'background-image': `url(${getCardImageSource(
-                                    card.value,
-                                    card.suit,
-                                )})`,
-                                'background-size': 'cover',
-                            }}
+                            style={
+                                props.isOwnerOfCards
+                                    ? {
+                                          'background-image': `url(${getCardImageSource(
+                                              card.value,
+                                              card.suit,
+                                          )})`,
+                                          'background-size': 'cover',
+                                      }
+                                    : ''
+                            }
                         />
                     );
                 }}
