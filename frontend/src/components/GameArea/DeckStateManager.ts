@@ -1,4 +1,4 @@
-import { ICardProps } from './Card/Card';
+import { ECardState, ICardProps } from './Card/Card';
 import * as utils from './ga-utils';
 
 class DeckStateManager {
@@ -16,6 +16,10 @@ class DeckStateManager {
 
     getDeck(): ICardProps[] {
         return this.decks;
+    }
+
+    setDeck(deck: ICardProps[]): void {
+        this.decks = deck;
     }
 
     updateCardPos(
@@ -51,6 +55,28 @@ class DeckStateManager {
 
         this.decks = this.setCardAtIndex(newCard, index);
         return { newDeck: this.decks, isFaceUp: this.decks[index].isFaceUp };
+    }
+
+    toggleCardVisibility(
+        cardId: number,
+        playerId: string,
+    ): {
+        newDeck: ICardProps[];
+        newCard: ICardProps;
+    } {
+        const index = this.findCardIndex(cardId);
+
+        const newCard: ICardProps = {
+            ...this.decks[index],
+            cardState:
+                this.decks[index].cardState === ECardState.inHand
+                    ? ECardState.onTable
+                    : ECardState.inHand,
+            playerId: playerId,
+        };
+
+        this.decks = this.setCardAtIndex(newCard, index);
+        return { newDeck: this.decks, newCard: newCard };
     }
 
     private findCardIndex(cardId: number): number {

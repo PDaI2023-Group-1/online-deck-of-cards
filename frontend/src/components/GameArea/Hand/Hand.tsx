@@ -9,7 +9,7 @@ const Hand: Component<Array<ICardProps>> = (props) => {
     };
 
     return (
-        <div id="own-hand" draggable={false}>
+        <div id="own-hand" draggable={false} class="gap-2">
             <For each={props}>
                 {(card) => {
                     return (
