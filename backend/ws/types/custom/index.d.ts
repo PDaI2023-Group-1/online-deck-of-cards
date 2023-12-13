@@ -81,6 +81,12 @@ type KickPlayer = {
     playerId: number;
 };
 
+type HideCard = {
+    event: 'hide-card' | 'show-card';
+    cardId: number;
+    playerId: number;
+};
+
 declare type WSData =
     | MoveCardData
     | FlipCardData
@@ -90,4 +96,5 @@ declare type WSData =
     | Authorize
     | RoomDataChanged
     | StartGame
-    | KickPlayer;
+    | KickPlayer
+    | HideCard;
