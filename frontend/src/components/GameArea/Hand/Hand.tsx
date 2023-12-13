@@ -4,6 +4,10 @@ import { ICardProps } from '../Card/Card';
 import './Hand.css';
 
 const Hand: Component<Array<ICardProps>> = (props) => {
+    const getCardImageSource = (value: number, suit: number) => {
+        return `/assets/${value}_of_${suit}.webp`;
+    };
+
     return (
         <div id="own-hand" draggable={false}>
             <For each={props}>
@@ -13,12 +17,14 @@ const Hand: Component<Array<ICardProps>> = (props) => {
                             class="own-card"
                             id={`${card.id}`}
                             draggable={false}
-                        >
-                            {card.value}
-                            &nbsp;
-                            {card.suit}
-                            &nbsp;
-                        </div>
+                            style={{
+                                'background-image': `url(${getCardImageSource(
+                                    card.value,
+                                    card.suit,
+                                )})`,
+                                'background-size': 'cover',
+                            }}
+                        />
                     );
                 }}
             </For>
