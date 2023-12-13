@@ -8,4 +8,8 @@ const setRoomByCode = (code: string, room: Room): void => {
     rooms.set(code, room);
 };
 
-export { getRoomByCode, setRoomByCode };
+const removeRoomByCode = (code: string): void => {
+    rooms.delete(code);
+};
+
+export { getRoomByCode, setRoomByCode, removeRoomByCode };
