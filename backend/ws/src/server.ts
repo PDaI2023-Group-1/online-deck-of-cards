@@ -26,7 +26,9 @@ const removePlayer = (ws: WebSocket) => {
     const player = getPlayerDataBySocket(ws);
 
     if (player === undefined) {
-        console.log(`Failed to remove player. Player data undefined`);
+        console.log(
+            `Failed to remove player. Player data undefined. Player might have been removed already`
+        );
         return;
     }
 
