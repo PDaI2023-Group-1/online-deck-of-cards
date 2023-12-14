@@ -189,7 +189,7 @@ wss.on('connection', (ws: WebSocket) => {
                     })
                 );
                 console.log(
-                    `User: ${player.username} failed to join room: ${player.roomCode}. Room is full: ${room.players.length}/${room.maxPlayers}} players`
+                    `User: ${player.username} failed to join room: ${player.roomCode}. Room is full: ${room.players.length}/${room.maxPlayers}`
                 );
                 return;
             }
