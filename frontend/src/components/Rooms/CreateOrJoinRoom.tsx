@@ -66,7 +66,7 @@ const CreateOrJoinRoom: Component = () => {
                     <input
                         type="range"
                         min="2"
-                        max="8"
+                        max="4"
                         class="cursor-pointer"
                         value={maxPlayers()}
                         onInput={(e) =>

@@ -84,25 +84,22 @@ type PassTurnData = {
 };
 
 type GameState = {
-    deck: Array<ICardProps>; // Include card positions, face-up/down status, etc.
-    players: Array<PlayerState>; // Information about each player
-    currentPlayerId: string; // ID of the player whose turn it is
-    gamePhase: GamePhase; // Current phase of the game, e.g., "waiting", "playing", "ended"
-    // ... other relevant game state information
+    deck: Array<ICardProps>;
+    players: Array<PlayerState>;
+    currentPlayerId: string;
+    gamePhase: GamePhase;
 };
 
 type PlayerState = {
     id: string;
-    hand: Array<ICardProps>; // Cards in the player's hand
-    score: number; // Player's score
-    // ... other relevant player information
+    hand: Array<ICardProps>;
+    score: number;
 };
 
 enum GamePhase {
     WaitingForPlayers,
     InProgress,
     Completed,
-    // ... other phases as needed
 }
 
 type RoomDataChanged = {
@@ -124,6 +121,16 @@ type KickPlayer = {
     playerId: number;
 };
 
+type HideCard = {
+    event: 'hide-card';
+    cardId: number;
+};
+
+type ShowCard = {
+    event: 'show-card';
+    cardId: number;
+};
+
 export enum ECardState {
     onTable,
     inDeck,
@@ -142,7 +149,6 @@ export enum GamePhase {
     WaitingForPlayers = 'WaitingForPlayers',
     InProgress = 'InProgress',
     Completed = 'Completed',
-    // ... other possible game phases
 }
 
 export type ICardProps = {
@@ -168,4 +174,6 @@ declare type WSData =
     | KickPlayer
     | EndTurn
     | PlayCardData
+    | HideCard
+    | ShowCard
     | PassTurnData;

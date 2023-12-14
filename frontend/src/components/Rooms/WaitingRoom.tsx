@@ -1,4 +1,11 @@
-import { Component, createSignal, For, createEffect, onMount } from 'solid-js';
+import {
+    Component,
+    createSignal,
+    For,
+    createEffect,
+    onMount,
+    Show,
+} from 'solid-js';
 import { writeClipboard } from '@solid-primitives/clipboard';
 import WSClient from '../../API/WSClient';
 import { jwtDecode } from 'jwt-decode';
@@ -61,7 +68,7 @@ const WaitingRoom: Component = () => {
                 setAuthHeaders(token);
 
                 const response = await put<JoinRoomRequest>(
-                    'http://127.0.0.1:8080/room/' + params.roomCode,
+                    '/room/' + params.roomCode,
                     null,
                 );
                 console.log(response);
@@ -223,14 +230,18 @@ const WaitingRoom: Component = () => {
                     return (
                         <li class="flex items-center justify-between py-1">
                             <span>{player.username}</span>
-                            {player.id !== players()[0].id && isOwner() ? (
+                            <Show
+                                when={
+                                    player.id !== players()[0].id && isOwner()
+                                }
+                            >
                                 <button
                                     class="bg-red-500 text-white px-3 py-1 rounded"
                                     onClick={() => kick(+player.id)}
                                 >
                                     Kick
                                 </button>
-                            ) : null}
+                            </Show>
                         </li>
                     );
                 }}
@@ -264,17 +275,20 @@ const WaitingRoom: Component = () => {
 
     return (
         <>
-            {gameHasStarted() ? (
-                <GameArea
-                    wsClient={wsClient!}
-                    settings={{
-                        deckCount: deckCount(),
-                        jokerCount: jokerCount(),
-                        cardsPerPlayer: cardsPerPlayer(),
-                    }}
-                    players={players()}
-                />
-            ) : (
+            <Show when={gameHasStarted()}>
+                <div class="flex flex-col justify-center items-center h-screen">
+                    <GameArea
+                        wsClient={wsClient!}
+                        settings={{
+                            deckCount: deckCount(),
+                            jokerCount: jokerCount(),
+                            cardsPerPlayer: cardsPerPlayer(),
+                        }}
+                        players={players()}
+                    />
+                </div>
+            </Show>
+            <Show when={!gameHasStarted()}>
                 <div class="flex flex-col justify-center items-center h-screen">
                     <div class="flex">
                         <form>
@@ -379,7 +393,7 @@ const WaitingRoom: Component = () => {
                         </button>
                     </div>
                 </div>
-            )}
+            </Show>
         </>
     );
 };

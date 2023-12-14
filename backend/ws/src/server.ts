@@ -22,7 +22,7 @@ import {
     getSocketByPlayerId,
 } from './utils/user';
 
-import { getRoomByCode, setRoomByCode } from './utils/room';
+import { getRoomByCode, setRoomByCode, removeRoomByCode } from './utils/room';
 
 if (process.env.SECRET_KEY === undefined || process.env.SECRET_KEY === null) {
     console.error('SECRET_KEY is not defined');
@@ -137,6 +137,14 @@ const removePlayer = (ws: WebSocket) => {
             }),
         );
     });
+
+    if (player.isOwner) {
+        removeRoomByCode(player.roomCode);
+        room.players.forEach((socket: WebSocket) => {
+            socket.send(JSON.stringify({ event: 'room-closed' }));
+            socket.close();
+        });
+    }
 
     removePlayerIdBySocket(ws);
     removePlayerData(player.id);
@@ -437,6 +445,27 @@ wss.on('connection', (ws: WebSocket) => {
             }
             socket.send(JSON.stringify({ event: 'player-kicked' }));
             removePlayer(socket);
+            socket.close();
+        }
+
+        if (message.event === 'hide-card' || message.event === 'show-card') {
+            const player = getPlayerDataBySocket(ws);
+            if (player === undefined) {
+                return;
+            }
+
+            const room = getRoomByCode(player.roomCode);
+            if (room === undefined) {
+                return;
+            }
+
+            const players = room.players.filter(
+                (socket: WebSocket) => socket !== ws,
+            );
+
+            players.forEach((socket: WebSocket) => {
+                socket.send(JSON.stringify(message));
+            });
         }
 
         if (message.event === 'play-card' || message.event === 'pass-turn') {
