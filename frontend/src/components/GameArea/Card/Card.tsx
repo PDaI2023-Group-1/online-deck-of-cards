@@ -30,7 +30,7 @@ export interface ICardProps {
  * or if it is in someone's hand it indicates whose hand it is in */
 const Card: Component<ICardProps> = (props) => {
     const getCardImageSource = () => {
-        return `/assets/${props.value}_of_${props.suit}.webp`;
+        return `/assets/${props.value}_of_${props.suit}.svg`;
     };
 
     return (

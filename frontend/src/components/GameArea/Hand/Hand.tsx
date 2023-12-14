@@ -9,7 +9,7 @@ interface PlayerHand extends IPlayer {
 
 const Hand: Component<PlayerHand> = (props) => {
     const getCardImageSource = (value: number, suit: number) => {
-        return `/assets/${value}_of_${suit}.webp`;
+        return `/assets/${value}_of_${suit}.svg`;
     };
 
     return (
