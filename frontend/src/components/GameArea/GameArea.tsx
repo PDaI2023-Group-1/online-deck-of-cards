@@ -75,7 +75,7 @@ const GameArea: Component<GameAreaProps> = (props) => {
             if (players().length === 2) {
                 if (pIdx === 1) {
                     pos.x = window.screen.width - data.x;
-                    pos.y = window.screen.height - data.y - 160;
+                    pos.y = window.screen.height - data.y - 120;
                 }
             }
 
@@ -94,7 +94,7 @@ const GameArea: Component<GameAreaProps> = (props) => {
             if (players().length === 4) {
                 if (pIdx === 3) {
                     pos.x = window.screen.width - data.x;
-                    pos.y = window.screen.height - data.y - 160;
+                    pos.y = window.screen.height - data.y - 120;
                 }
 
                 if (pIdx === 1) {
@@ -341,7 +341,7 @@ const GameArea: Component<GameAreaProps> = (props) => {
                     <PlayerHand {...players()[3]} />
                 </div>
             </Show>
-            <div class="flex grid-flow-row content-center">
+            <div class="flex grid-flow-row content-center justify-center items-center">
                 <Show when={players().length === 3 || players().length === 4}>
                     <div class="mr-4">
                         <PlayerHand {...players()[1]} />
