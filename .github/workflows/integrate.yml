@@ -5,3 +5,59 @@ on:
     branches: [deployment]
 
 jobs:
+  docker-release:
+    name: Docker Release to GAR
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+    - id: checkout
+      name: Checkout
+      uses: actions/checkout@v2
+
+    - id: auth
+      name: Auth with GCP
+      uses: google-github-actions/auth@v0
+      with:
+        token_format: access_token
+        workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+        service_account: ${{ secrets.SERVICE_ACCOUNT }}
+        access_token_lifetime: 600s
+
+    - name: Login to GAR
+      uses: docker/login-action@v1
+      with:
+        registry: europe-north1-docker.pkg.dev
+        username: ${{ steps.auth.outputs.service-account }}
+        password: ${{ steps.auth.outputs.access_token }}
+
+    - name: Get tag
+      id: get-tag
+      run: echo ::set-output name=tag::$(echo $GITHUB_REF | cut -d'/' -f3)
+
+    - id: docker-push-tagged-frontend
+      name: Tag image and push to GAR
+      uses: docker/build-push-action@v2
+      with:
+        push: true
+        tags: |
+          europe-north1-docker.pkg.dev/${{ secrets.PROJECT_ID }}/online-deck-of-cards/online-deck-of-cards-frontend:${{ steps.get-tag.outputs.tag }}
+
+    - id: docker-push-tagged-backend_rest
+      name: Tag image and push to GAR
+      uses: docker/build-push-action@v2
+      with:
+        push: true
+        tags: |
+          europe-north1-docker.pkg.dev/${{ secrets.PROJECT_ID }}/online-deck-of-cards/online-deck-of-cards-backend_rest:${{ steps.get-tag.outputs.tag }}
+
+    - id: docker-push-tagged-backend_ws
+      name: Tag image and push to GAR
+      uses: docker/build-push-action@v2
+      with:
+        push: true
+        tags: |
+          europe-north1-docker.pkg.dev/${{ secrets.PROJECT_ID }}/online-deck-of-cards/online-deck-of-cards-backend_ws:${{ steps.get-tag.outputs.tag }}
