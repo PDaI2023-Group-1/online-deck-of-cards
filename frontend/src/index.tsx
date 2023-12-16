@@ -7,7 +7,6 @@ import App from './App';
 import './index.css';
 import BoxTest from './components/BoxTest/BoxTest';
 
-const GameArea = lazy(() => import('./components/GameArea/GameArea'));
 const CreateGuest = lazy(() => import('./components/User/CreateGuest'));
 const CreateOrJoinRoom = lazy(
     () => import('./components/Rooms/CreateOrJoinRoom'),
@@ -31,7 +30,6 @@ render(
                 <Route path="/user" component={CreateGuest} />
                 <Route path="/room/create" component={CreateOrJoinRoom} />
                 <Route path="/room/:roomCode" component={WaitingRoom} />
-                <Route path="/game/:id" component={GameArea} />
                 <Route path="/test/" component={BoxTest} />
             </Routes>
         </Router>

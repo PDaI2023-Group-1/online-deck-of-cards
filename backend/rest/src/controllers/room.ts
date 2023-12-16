@@ -4,7 +4,6 @@ import {
     roomCount,
     getRoomInfo,
     roomCodeExists,
-    updateRoomInfo,
 } from '../handlers/roomCodeHandler';
 import { signToken } from '../middleware/authenticate';
 
@@ -23,7 +22,7 @@ const createRoom = (req: Request, res: Response) => {
     }
 
     if (maxPlayers) {
-        if (maxPlayers < 2 || maxPlayers > 8) {
+        if (maxPlayers < 2 || maxPlayers > 4) {
             return res.status(400).json({ error: 'Invalid max player count' });
         }
     }
@@ -40,6 +39,8 @@ const createRoom = (req: Request, res: Response) => {
         id: req.user!.id,
         username: req.user!.username,
         roomCode: roomCode,
+        isOwner: true,
+        maxPlayers: maxPlayers ?? 4,
     };
     const newToken = signToken(user);
 
@@ -75,17 +76,11 @@ const joinRoom = (req: Request, res: Response) => {
         return res.status(404).json({ error: 'Room not found' });
     }
 
-    const roomInfo = getRoomInfo(roomCode);
-
-    const playerList = roomInfo!.players;
-    playerList.push(req.user!.id);
-
-    updateRoomInfo(roomCode, playerList);
-
     const user = {
         id: req.user!.id,
         username: req.user!.username,
         roomCode: roomCode,
+        isOwner: false,
     };
     const newToken = signToken(user);
 
