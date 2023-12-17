@@ -1,6 +1,5 @@
 import { Component } from 'solid-js';
 import './CardStyle.css';
-
 export enum ECardState {
     onTable,
     inDeck,
@@ -30,6 +29,10 @@ export interface ICardProps {
  * playerId refers to the player who last handled the card,
  * or if it is in someone's hand it indicates whose hand it is in */
 const Card: Component<ICardProps> = (props) => {
+    const getCardImageSource = () => {
+        return `/assets/${props.value}_of_${props.suit}.svg`;
+    };
+
     return (
         <div
             draggable={false}
@@ -41,16 +44,19 @@ const Card: Component<ICardProps> = (props) => {
                           `card-suit-${props.suit}`,
                           `card-value-${props.value}`,
                       ].join(' ')
-                    : 'card-container'
+                    : 'card-container card-back'
             }
             id={`${props.id}`}
             style={{
-                left: `${props.pos.x - 20}px`,
-                top: `${props.pos.y - 25}px`,
+                left: `${props.pos.x - 36}px`,
+                top: `${props.pos.y - 52}px`,
+                'background-color': props.isFaceUp ? 'transparent' : '',
+                'background-size': props.isFaceUp ? 'cover' : '',
+                'background-image': props.isFaceUp
+                    ? `url(${getCardImageSource()})`
+                    : '',
             }}
-        >
-            {props.isFaceUp ? <>{props.value}</> : <>card</>}
-        </div>
+        />
     );
 };
 

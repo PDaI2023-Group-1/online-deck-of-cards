@@ -26,11 +26,15 @@ const removePlayer = (ws: WebSocket) => {
     const player = getPlayerDataBySocket(ws);
 
     if (player === undefined) {
+        console.log(
+            `Failed to remove player. Player data undefined. Player might have been removed already`
+        );
         return;
     }
 
     const room = getRoomByCode(player.roomCode);
     if (room === undefined) {
+        console.log(`Failed to remove player. Room does not exist`);
         return;
     }
 
@@ -59,6 +63,9 @@ const removePlayer = (ws: WebSocket) => {
 
     removePlayerIdBySocket(ws);
     removePlayerData(player.id);
+    console.log(
+        `Player: ${player.username} has been removed from room ${player.roomCode}`
+    );
 };
 
 wss.on('connection', (ws: WebSocket) => {
@@ -74,6 +81,7 @@ wss.on('connection', (ws: WebSocket) => {
                 })
             );
             ws.close();
+            console.log('Client has not been authorized. Closing socket');
             return;
         }
 
@@ -88,6 +96,9 @@ wss.on('connection', (ws: WebSocket) => {
                             event: 'authorized',
                         })
                     );
+                    console.log(
+                        `Client has been authorized. User's id: ${decoded.id}. Username: ${decoded.username}`
+                    );
                 })
                 .catch((err) => {
                     console.log(err);
@@ -97,6 +108,9 @@ wss.on('connection', (ws: WebSocket) => {
                         })
                     );
                     ws.close();
+                    console.log(
+                        'Client tried to authenticate with invalid token. Closing socket.'
+                    );
                 });
         }
 
@@ -125,11 +139,13 @@ wss.on('connection', (ws: WebSocket) => {
             const player = getPlayerDataBySocket(ws);
 
             if (player === undefined) {
+                console.log('Failed to create room. Player data undefined');
                 ws.send(JSON.stringify({ event: 'room-create-fail' }));
                 return;
             }
 
             if (!player.isOwner) {
+                console.log("Failed to create room. Player isn't owner");
                 ws.send(JSON.stringify({ event: 'room-create-fail' }));
                 return;
             }
@@ -147,18 +163,23 @@ wss.on('connection', (ws: WebSocket) => {
 
             setRoomByCode(player.roomCode, room);
             ws.send(JSON.stringify({ event: 'room-created' }));
+            console.log(
+                `Room created with code: ${player.roomCode}. Maxplayers: ${player.maxPlayers}`
+            );
         }
 
         if (message.event === 'join-room') {
             const player = getPlayerDataBySocket(ws);
 
             if (player === undefined) {
+                console.log('Failed to join room. Player data is undefined');
                 ws.send(JSON.stringify({ event: 'join-room-fail' }));
                 return;
             }
 
             const room = getRoomByCode(player.roomCode);
             if (room === undefined) {
+                console.log("Failed to join room. Room doesn't exist");
                 ws.send(JSON.stringify({ event: 'join-room-fail' }));
                 return;
             }
@@ -169,6 +190,9 @@ wss.on('connection', (ws: WebSocket) => {
                         event: 'room-full',
                     })
                 );
+                console.log(
+                    `User: ${player.username} failed to join room: ${player.roomCode}. Room is full: ${room.players.length}/${room.maxPlayers}`
+                );
                 return;
             }
 
@@ -177,6 +201,10 @@ wss.on('connection', (ws: WebSocket) => {
                     event: 'joined-room',
                     settings: room.settings,
                 })
+            );
+
+            console.log(
+                `Player: ${player.username} joined room: ${player.roomCode}`
             );
 
             // loop over current players and send player-joined to self
@@ -218,6 +246,11 @@ wss.on('connection', (ws: WebSocket) => {
                         event: 'game-started',
                     })
                 );
+                console.log(
+                    'Game has already started in room: ' +
+                        player.roomCode +
+                        '. Sending game-started event to new player'
+                );
             }
         }
 
@@ -248,6 +281,9 @@ wss.on('connection', (ws: WebSocket) => {
             }
 
             if (player.isOwner === false) {
+                console.log(
+                    `User: ${player.username} isn't owner of room: ${player.roomCode} and can't change settings`
+                );
                 return;
             }
 
@@ -285,13 +321,13 @@ wss.on('connection', (ws: WebSocket) => {
             const player = getPlayerDataBySocket(ws);
 
             if (player === undefined) {
-                console.log('player data undefined');
+                console.log(`Failed to start game. Player data undefined`);
                 return;
             }
 
             const room = getRoomByCode(player.roomCode);
             if (room === undefined) {
-                console.log('room not found');
+                console.log(`Failed to start game. Room does not exist`);
                 return;
             }
 
@@ -309,15 +345,23 @@ wss.on('connection', (ws: WebSocket) => {
                     })
                 );
             });
+
+            console.log(`Game started in room: ${player.roomCode}`);
         }
 
         if (message.event === 'kick-player') {
             const player = getPlayerDataBySocket(ws);
             if (player === undefined) {
+                console.log(
+                    `Failed to kick player. Player who initiated kick-player has no data`
+                );
                 return;
             }
 
             if (player.isOwner === false) {
+                console.log(
+                    `Failed to kick player. User: ${player.username} who initiated kick-player isn't owner`
+                );
                 return;
             }
 
@@ -326,6 +370,12 @@ wss.on('connection', (ws: WebSocket) => {
                 return;
             }
             socket.send(JSON.stringify({ event: 'player-kicked' }));
+            const kickedPlayer = getPlayerDataBySocket(socket);
+            console.log(
+                `Player: ${kickedPlayer!.username} kicked from room: ${
+                    player.roomCode
+                }`
+            );
             removePlayer(socket);
             socket.close();
         }

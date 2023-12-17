@@ -4,8 +4,10 @@
 }
 
 .own-card {
-    height: 3.5em;
-    width: 2.5em;
+    width: 4.5rem;
+    height: 6.5rem;
     background-color: black;
     color: white;
+    border: 1px solid #263238;
+    border-radius: 5px;
 }

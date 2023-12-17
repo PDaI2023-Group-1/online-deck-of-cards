@@ -1,6 +1,6 @@
 .card-container {
-    width: 2.5rem;
-    height: 3.5rem;
+    width: 4.5rem;
+    height: 6.5rem;
     position: fixed;
     background-color: white;
     border: 1px solid black;
@@ -35,4 +35,22 @@
     /* spade */
     background-color: antiquewhite;
     color: white;
+}
+
+.card-back {
+    background-color: #0b360d;
+    border: 1px solid #263238;
+    border-radius: 5px;
+    width: 4.5rem;
+    height: 6.5rem;
+    background-image: linear-gradient(
+        45deg,
+        #3498db 25%,
+        transparent 25%,
+        transparent 50%,
+        #3498db 50%,
+        #3498db 75%,
+        transparent 75%
+    );
+    background-size: 10px 10px;
 }

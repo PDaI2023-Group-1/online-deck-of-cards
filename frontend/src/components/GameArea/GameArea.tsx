@@ -75,11 +75,28 @@ const GameArea: Component<GameAreaProps> = (props) => {
             if (players().length === 2) {
                 if (pIdx === 1) {
                     pos.x = window.screen.width - data.x;
-                    pos.y = window.screen.height - data.y - 160;
+                    pos.y = window.screen.height - data.y - 120;
                 }
             }
 
             if (players().length === 3) {
+                if (pIdx === 1) {
+                    pos.x = window.screen.width / 1.35 - data.y;
+                    pos.y = data.x - window.screen.height / 2.15;
+                }
+
+                if (pIdx === 2) {
+                    pos.x = window.screen.width / 3.9 + data.y;
+                    pos.y = data.x - window.screen.height / 2.15;
+                }
+            }
+
+            if (players().length === 4) {
+                if (pIdx === 3) {
+                    pos.x = window.screen.width - data.x;
+                    pos.y = window.screen.height - data.y - 120;
+                }
+
                 if (pIdx === 1) {
                     pos.x = window.screen.width / 1.35 - data.y;
                     pos.y = data.x - window.screen.height / 2.15;
@@ -302,7 +319,10 @@ const GameArea: Component<GameAreaProps> = (props) => {
                         }
                         draggable={false}
                     >
-                        <Hand {...player.cards} />
+                        <Hand
+                            {...player}
+                            isOwnerOfCards={players()[0].id === player.id}
+                        />
                     </div>
                 </div>
             </>
@@ -321,40 +341,44 @@ const GameArea: Component<GameAreaProps> = (props) => {
                     <PlayerHand {...players()[3]} />
                 </div>
             </Show>
-            <Show when={players().length === 3}>
-                <div class="mr-4">
-                    <PlayerHand {...players()[1]} />
-                </div>
-            </Show>
-            <div
-                id="ga-container"
-                onMouseMove={(event) => handleMouseMove(event)}
-                onMouseDown={(event) => handleMouseDown(event, event.target)}
-                onMouseUp={(event) => handleMouseUp(event, event.target)}
-            >
-                <For each={deck()}>
-                    {(card, i) => {
-                        const getProps = (
-                            props: ICardProps,
-                            index: number,
-                        ): ICardProps => {
-                            props.order = deck().length - index;
-                            return props;
-                        };
+            <div class="flex grid-flow-row content-center justify-center items-center">
+                <Show when={players().length === 3 || players().length === 4}>
+                    <div class="mr-4">
+                        <PlayerHand {...players()[1]} />
+                    </div>
+                </Show>
+                <div
+                    id="ga-container"
+                    onMouseMove={(event) => handleMouseMove(event)}
+                    onMouseDown={(event) =>
+                        handleMouseDown(event, event.target)
+                    }
+                    onMouseUp={(event) => handleMouseUp(event, event.target)}
+                >
+                    <For each={deck()}>
+                        {(card, i) => {
+                            const getProps = (
+                                props: ICardProps,
+                                index: number,
+                            ): ICardProps => {
+                                props.order = deck().length - index;
+                                return props;
+                            };
 
-                        return (
-                            <span id={`${i()}`} draggable={false}>
-                                <Card {...getProps(card, i())} />
-                            </span>
-                        );
-                    }}
-                </For>
-            </div>
-            <Show when={players().length === 3}>
-                <div class="ml-4">
-                    <PlayerHand {...players()[2]} />
+                            return (
+                                <span id={`${i()}`} draggable={false}>
+                                    <Card {...getProps(card, i())} />
+                                </span>
+                            );
+                        }}
+                    </For>
                 </div>
-            </Show>
+                <Show when={players().length === 3 || players().length === 4}>
+                    <div class="ml-4">
+                        <PlayerHand {...players()[2]} />
+                    </div>
+                </Show>
+            </div>
 
             {/* move player to its own component, this is quickly getting out of hand or maybe not, this is fine if we want to deal with a trainwreck but get this done quick*/}
             <div class="mt-2">
