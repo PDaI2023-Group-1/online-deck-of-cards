@@ -1,3 +1,5 @@
+import { Room } from '../../types/custom';
+
 const rooms = new Map<string, Room>();
 
 const getRoomByCode = (code: string): Room | undefined => {

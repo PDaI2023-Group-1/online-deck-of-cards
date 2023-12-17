@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import { Token } from '../../types/custom';
 
 const verify = (token: string): Promise<Token> => {
     return new Promise((resolve, reject) => {

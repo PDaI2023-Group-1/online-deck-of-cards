@@ -64,7 +64,43 @@ type Room = {
         cardsPerPlayer: number;
         jokerCount: number;
     };
+    gameState: GameState;
+    playerIds: string[];
 };
+
+type EndTurn = {
+    event: 'end-turn';
+};
+
+type PlayCardData = {
+    event: 'play-card';
+    playerId: string;
+    cardId: number;
+};
+
+type PassTurnData = {
+    event: 'pass-turn';
+    playerId: string;
+};
+
+type GameState = {
+    deck: Array<ICardProps>;
+    players: Array<PlayerState>;
+    currentPlayerId: string;
+    gamePhase: GamePhase;
+};
+
+type PlayerState = {
+    id: string;
+    hand: Array<ICardProps>;
+    score: number;
+};
+
+enum GamePhase {
+    WaitingForPlayers,
+    InProgress,
+    Completed,
+}
 
 type RoomDataChanged = {
     event: 'room-data-changed';
@@ -76,15 +112,54 @@ type StartGame = {
     event: 'start-game';
 };
 
+type EndTurn = {
+    event: 'end-turn';
+};
+
 type KickPlayer = {
     event: 'kick-player';
     playerId: number;
 };
 
 type HideCard = {
-    event: 'hide-card' | 'show-card';
+    event: 'hide-card';
     cardId: number;
-    playerId: number;
+};
+
+type ShowCard = {
+    event: 'show-card';
+    cardId: number;
+};
+
+export enum ECardState {
+    onTable,
+    inDeck,
+    inHand,
+    discarded,
+}
+
+export enum ECardSuit {
+    diamond,
+    heart,
+    ace,
+    spade,
+}
+
+export enum GamePhase {
+    WaitingForPlayers = 'WaitingForPlayers',
+    InProgress = 'InProgress',
+    Completed = 'Completed',
+}
+
+export type ICardProps = {
+    id: number;
+    pos: { x: number; y: number };
+    isFaceUp: boolean;
+    order: number;
+    cardState: ECardState;
+    playerId: string;
+    value: number;
+    suit: ECardSuit;
 };
 
 declare type WSData =
@@ -97,4 +172,8 @@ declare type WSData =
     | RoomDataChanged
     | StartGame
     | KickPlayer
-    | HideCard;
+    | EndTurn
+    | PlayCardData
+    | HideCard
+    | ShowCard
+    | PassTurnData;
