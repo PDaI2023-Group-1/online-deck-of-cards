@@ -1,0 +1,15 @@
+services:
+  frontend:
+    build: ./frontend/
+    ports:
+      - ${FRONTEND_PORT}:${FRONTEND_PORT}
+
+  backend_rest:
+    build: ./backend/rest/
+    ports:
+      - ${BACKEND_REST_PORT}:${BACKEND_REST_PORT}
+
+  backend_ws:
+    build: ./backend/ws/
+    ports:
+      - ${BACKEND_WS_PORT}:${BACKEND_WS_PORT}

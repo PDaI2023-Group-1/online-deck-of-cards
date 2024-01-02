@@ -1,0 +1,6 @@
+steps:
+# running docker compose
+- name: 'docker/compose'
+  args: ['up', '-d']
+  timeout: '3000s'
+# TODO: tarkista versio composesta että onko sillä mittään väliä
